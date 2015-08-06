@@ -1,6 +1,7 @@
 package evolutionaryAlgorithm;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 
 import graph.Graph;
@@ -62,6 +63,13 @@ public class EvolutionaryAlgorithm {
             time=stopTimer-startTimer;
             System.out.println("Mutate Init pop  time ------> "+ time + " MS");
         
+            
+            /*-------Local Optimization------*/
+            startTimer=System.currentTimeMillis();
+            alg.localOptimization();
+            stopTimer=System.currentTimeMillis();
+            time=stopTimer-startTimer;
+            System.out.println("Local Optimization InitPop  time----->: "+ time + " MS");
         }catch(CloneNotSupportedException ex){
             ex.printStackTrace();
         }
@@ -145,4 +153,71 @@ public class EvolutionaryAlgorithm {
 	        
 
 	 }
+	 
+	    public void localOptimization()throws CloneNotSupportedException{
+	        
+	         //inputChrom.print();
+	        //graph.printEdge();
+	        Graph subGraph = null;
+	        //subGraph.printEdge();
+	         //subGraph.printDegreeVertex();
+	        //Chromosom test=new Chromosom("0000100111001100");
+	       // Chromosom test1=new Chromosom("0110010010011011");
+	        //subGraph.setTest();
+	        //subGraph.loadChromosom(inputChrom);
+	        for(int i=0;i<basePopulation.getSizePopulation();i++){
+	            //population.getChromosom(i).print();
+	            //System.out.println("Ocena: "+ basePopulation.getChromosom(i).getFitnes());
+	            subGraph= (Graph)graph.clone();
+	            //Chromosom test = new Chromosom("1111101010111010");
+	            //Chromosom test1 = new Chromosom("0000001100100000");
+	            //subGraph.setTest();
+	            //subGraph.printEdge();
+	            
+	            subGraph.loadChromosom(basePopulation.getChromosom(i));
+	            //subGraph.printDegreeVertex();
+	            //System.out.println("IsClique:"+subGraph.isClique());
+	            //System.out.println("Po zal chromosomu!");
+	            //subGraph.printEdge();
+	            
+	           /*System.out.println("Chromosom przed ekstrakcj¹:");
+	            System.out.println("Ocena: " +basePopulation.getChromosom(i).getFitnes());
+	            */
+	           //population.getChromosom(i).print();
+	           //subGraph.printDegreeVertex();
+	            //subGraph.printEdge();
+	            //System.out.println("Jest Klik¹: "+ subGraph.isClique());
+	            
+	            
+	            subGraph.extractionClique();
+	            
+	            
+	            boolean[] booleanArrayVertex=subGraph.getBoolArrayVertex();
+	            boolean[] check = new boolean[booleanArrayVertex.length];
+	            if(Arrays.equals(booleanArrayVertex, check)){
+	                System.out.println("ERROR !!!!!!!!!!");
+	              
+	            }
+	            basePopulation.getChromosom(i).update(booleanArrayVertex);
+	            
+	            /*
+	            System.out.println("Po ekstrakcji !!!");
+	            System.out.println("Ocena: " +basePopulation.getChromosom(i).getFitnes());
+	            */
+	            //population.getChromosom(i).print();
+	            //subGraph.printDegreeVertex();
+	            
+	                // <--------------RESEARCH MAX CLIQUE WITOUT IMPROVEMENT CLIQUE--------------->
+	            subGraph.improvementClique(graph,basePopulation.getChromosom(i));
+	            /*
+	            System.out.println("Po Rozszerzeniu!!!");
+	            System.out.println("Ocena: " +basePopulation.getChromosom(i).getFitnes());
+	            */
+	            //population.getChromosom(i).print();
+	            //subGraph.printDegreeVertex();
+	            //subGraph.printEdge();
+	            //System.out.println("Jest Klik¹: "+ subGraph.isClique());
+	            
+	        }
+	    }
 }

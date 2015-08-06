@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
+import evolutionaryAlgorithm.Chromosom;
+import evolutionaryAlgorithm.Gen;
+
 public class Graph implements Cloneable {
     
     private boolean[][] edge;
@@ -207,7 +210,7 @@ public void  extractionClique(){
     
 }
 
-/*
+
 public int improvementClique (Graph inGraph,Chromosom inChrom) 
         throws CloneNotSupportedException{
     
@@ -237,7 +240,7 @@ public int improvementClique (Graph inGraph,Chromosom inChrom)
     return countOfImprove;
 }
 
-*/
+
 
 public boolean isClique() {
   
@@ -248,7 +251,7 @@ public boolean isClique() {
    return true;
 }
 
-/*
+
 public void loadChromosom (Chromosom inputChrom) throws CloneNotSupportedException{
     Gen tmpGen=null;
     int vertex;
@@ -261,7 +264,7 @@ public void loadChromosom (Chromosom inputChrom) throws CloneNotSupportedExcepti
         }
     }
 }
-*/
+
 
 private void removeEdgeOfVertex(int inputNoVertex){
    
