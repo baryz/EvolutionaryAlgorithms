@@ -15,14 +15,13 @@ public class EvolutionaryAlgorithm {
     
 	private Graph graph;
 	private Population basePopulation;
-	
-	
-	 public ArrayList<Integer> pairForCrossing;
+	public ArrayList<Integer> pairForCrossing;
     
 	public EvolutionaryAlgorithm(Graph inGraph){
         graph=inGraph;
         basePopulation=new Population(graph.getNoVertex());
         bestChromosom= new Chromosom(graph.getNoVertex());
+        pairForCrossing= new ArrayList<>();
      }
 	
 	public static void main(String [] args){
@@ -74,7 +73,10 @@ public class EvolutionaryAlgorithm {
             ex.printStackTrace();
         }
         
+        time=stopTimer-overallStartTimer;
+        System.out.println("Overall  time----->: "+ time + " MS");
         
+        alg.reproduction();
 	}
 	
 	public void generateInitPopulation() throws CloneNotSupportedException {
@@ -219,5 +221,19 @@ public class EvolutionaryAlgorithm {
 	            //System.out.println("Jest Klik¹: "+ subGraph.isClique());
 	            
 	        }
+	    }
+	    
+	    public void reproduction(){
+	        
+	        pairForCrossing.clear();
+	        Reproduction repro = new Reproduction();
+	        //repro.check();
+	        pairForCrossing=repro.rank(this.basePopulation);
+	        
+	        for(int x:pairForCrossing){
+	           // System.out.println("X: "+ x );
+	        }
+	        
+	        
 	    }
 }
