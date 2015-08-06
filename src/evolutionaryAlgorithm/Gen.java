@@ -29,7 +29,10 @@ public class Gen {
      
      @Override
      public Object clone() throws CloneNotSupportedException{
-        return super.clone();
-         
+    	 Gen resultGen = new Gen();
+    	 resultGen.value=this.value;
+    	 resultGen.label=this.label;
+    	 return resultGen;
+        
      }
 }

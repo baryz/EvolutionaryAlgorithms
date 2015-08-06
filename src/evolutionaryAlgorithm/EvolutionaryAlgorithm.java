@@ -9,6 +9,9 @@ public class EvolutionaryAlgorithm {
 	
 	
 	private Chromosom bestChromosom;
+    private static final double initial_select_prob=0.4;
+    private static final double initial_mutate_prob=0.7;
+    
 	private Graph graph;
 	private Population basePopulation;
 	
@@ -50,6 +53,19 @@ public class EvolutionaryAlgorithm {
         stopTimer=System.currentTimeMillis();
         time=stopTimer-startTimer;
         System.out.println("Create Init Pop  time ------> "+ time + " MS");
+        
+        try {
+            /*------Mutate Init pop --------*/
+            startTimer=System.currentTimeMillis();
+            alg.mutateInitPopulation();
+            stopTimer=System.currentTimeMillis();
+            time=stopTimer-startTimer;
+            System.out.println("Mutate Init pop  time ------> "+ time + " MS");
+        
+        }catch(CloneNotSupportedException ex){
+            ex.printStackTrace();
+        }
+        
         
 	}
 	
@@ -98,4 +114,35 @@ public class EvolutionaryAlgorithm {
 
        	}
 	}
+	
+	
+	 public void mutateInitPopulation() throws CloneNotSupportedException{
+	        
+	        Random doubleGenerator=new Random();
+	        double doubleRandom;
+	        int countMutatedChrom=0;
+	        int countMutatedGen=0;
+	        int sizeChromosom=basePopulation.getChromosom(0).getSize();
+	        for(int i=0;i<basePopulation.getSizePopulation();i++){
+	            doubleRandom = doubleGenerator.nextDouble();
+	            //System.out.println("Cz mutuje chromosom: "+ i +  " draw: " + doubleRandom) ;
+	            if(doubleRandom<initial_select_prob){
+	                countMutatedChrom++;
+	                for(int j=0;j<sizeChromosom;j++){
+	                    doubleRandom=doubleGenerator.nextDouble();
+	                    //System.out.println("Czy mutuje gen "+ j +" draw"+ doubleRandom);
+	                    if(doubleRandom<initial_mutate_prob){
+	                        countMutatedGen++;
+	                        basePopulation.getChromosom(i).setNegateGen(j);
+	                    }
+	                }
+	            }
+	        }
+	        double percentMutate=((double)countMutatedChrom)/(double)basePopulation.getSizePopulation();
+	        double percentMutateGen=(double)countMutatedGen/(double)(basePopulation.getSizePopulation()*sizeChromosom);
+	        System.out.println("Zmutowane chromosomy:" + countMutatedChrom+" Zmutowane geny: " + countMutatedGen);
+	        System.out.println("Osobniki: " +percentMutate+ " Geny: "+ percentMutateGen );
+	        
+
+	 }
 }
