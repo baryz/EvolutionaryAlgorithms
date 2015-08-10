@@ -23,6 +23,11 @@ public class Gen {
          return value;
      }
      
+     public void setValue(boolean inValue){
+    
+    	 value=inValue;
+     }
+     
      public int getLabel(){
          return label;
      }

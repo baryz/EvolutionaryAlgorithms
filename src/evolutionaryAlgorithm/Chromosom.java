@@ -51,7 +51,7 @@ public class Chromosom {
 	        return gens.length;
 	    }
 	    
-	    public Gen getGen(int index){
+	   public Gen getGen(int index){
 	        
 	        Gen result=new Gen();
 	        result=gens[index];
@@ -136,5 +136,30 @@ public class Chromosom {
 	    
 	       return result;
 	        
+	    }
+	    
+	    
+	    @Override
+		public String toString(){
+	    	StringBuilder resultValue= new StringBuilder();
+	    	StringBuilder resultLabel= new StringBuilder();
+	    	for(Gen x:gens){
+	    		resultValue.append(String.format("%3d", x.getValue()? 1 : 0));
+	    		resultLabel.append(String.format("%3d", x.getLabel()));
+	    	}
+	    	String result=resultValue.toString()+"\n"+resultLabel.toString();
+
+	    	
+	    	return result;
+	    }
+	    
+	    public String getChromosomeCode(){
+	    	StringBuilder resultValue= new StringBuilder();
+	    	for(Gen x:gens){
+	    		resultValue.append(String.format("%1d", x.getValue()? 1 : 0));
+	    	
+	    	}
+	    	
+	    	return resultValue.toString();
 	    }
 }

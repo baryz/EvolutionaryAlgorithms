@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
+import evolutionaryAlgorithm.crossover.*;
+
 import graph.Graph;
 
 public class EvolutionaryAlgorithm {
@@ -15,13 +17,23 @@ public class EvolutionaryAlgorithm {
     
 	private Graph graph;
 	private Population basePopulation;
+	private Population tempPopulation;
+	private CrossoverType crossingType;
+	private Crossover crossover;
+	
 	public ArrayList<Integer> pairForCrossing;
+	
     
-	public EvolutionaryAlgorithm(Graph inGraph){
+	public EvolutionaryAlgorithm(Graph inGraph,CrossoverType type){
         graph=inGraph;
         basePopulation=new Population(graph.getNoVertex());
+        tempPopulation=new Population(graph.getNoVertex());
         bestChromosom= new Chromosom(graph.getNoVertex());
+       
         pairForCrossing= new ArrayList<>();
+        crossingType=type;
+	    CrossoverFactory factory = new CrossoverFactory();
+	    crossover=factory.produceCrossover(crossingType);
      }
 	
 	public static void main(String [] args){
@@ -38,7 +50,7 @@ public class EvolutionaryAlgorithm {
         
         /*-----------Init----------*/
         startTimer=System.currentTimeMillis();
-        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx);
+        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,CrossoverType.ONE_POINT);
         stopTimer=System.currentTimeMillis();
         time=stopTimer-startTimer;
         System.out.println("Init  time---------> "+ time + " MS");
@@ -69,14 +81,20 @@ public class EvolutionaryAlgorithm {
             stopTimer=System.currentTimeMillis();
             time=stopTimer-startTimer;
             System.out.println("Local Optimization InitPop  time----->: "+ time + " MS");
+            
+            time=stopTimer-overallStartTimer;
+            alg.reproduction();
+            System.out.println("Overall  time----->: "+ time + " MS");
+            
+           
+            
         }catch(CloneNotSupportedException ex){
+            ex.printStackTrace();
+        }catch(Exception ex){
             ex.printStackTrace();
         }
         
-        time=stopTimer-overallStartTimer;
-        System.out.println("Overall  time----->: "+ time + " MS");
-        
-        alg.reproduction();
+
 	}
 	
 	public void generateInitPopulation() throws CloneNotSupportedException {
@@ -123,6 +141,16 @@ public class EvolutionaryAlgorithm {
              }
 
        	}
+        
+        if(basePopulation.getSizePopulation()%2==1){
+            int randInt=randomVertexGen.nextInt(graph.getNoVertex()-1);
+            Chromosom randChromosom = (Chromosom) basePopulation.getChromosom(randInt).clone();
+            basePopulation.addChromosom(randChromosom);
+        }
+        
+        System.out.println("BEST "+ bestChromosom.getFitnes());
+        System.out.println("AVG: "+basePopulation.getAvgFitness());
+        
 	}
 	
 	
@@ -223,17 +251,60 @@ public class EvolutionaryAlgorithm {
 	        }
 	    }
 	    
-	    public void reproduction(){
+	    public void reproduction() throws CloneNotSupportedException,Exception{
 	        
 	        pairForCrossing.clear();
 	        Reproduction repro = new Reproduction();
 	        //repro.check();
 	        pairForCrossing=repro.rank(this.basePopulation);
 	        
-	        for(int x:pairForCrossing){
-	           // System.out.println("X: "+ x );
+	        /*for(int x:pairForCrossing){
+	            System.out.println("X: "+ x +" chromosom: \n"+ basePopulation.getChromosom(x).toString());
+	        }*/
+	        
+	      
+	      
+	        int[][] tableOfPointsCrossing =getRandomCrossingPoint();
+	        
+	        
+	        
+	        for(int i=0; i<tableOfPointsCrossing.length;i++){
+	    	    Chromosom[] chromosomeAfterCrossing= new Chromosom[2];
+	        	crossover.setParameters(tableOfPointsCrossing[i],
+	    	    		basePopulation.getChromosom(pairForCrossing.get((2*i))), 
+	    	    		basePopulation.getChromosom(pairForCrossing.get(2*i+1)));
+	    	    chromosomeAfterCrossing= crossover.getChromosomes();
+	    	    tempPopulation.addChromosom(chromosomeAfterCrossing[0].clone());
+	    	    tempPopulation.addChromosom(chromosomeAfterCrossing[1].clone());
 	        }
 	        
+	       
+	        /* for(int x:pairForCrossing){
+	            System.out.println("X: "+ x +" chromosom: \n"+ basePopulation.getChromosom(x).toString());
+	        }
+	        for(int i=0;i<tempPopulation.getSizePopulation();i++){
+	        	System.out.println(i+".CHromosom: \n"+ tempPopulation.getChromosom(i));
+	        } */
 	        
+	        
+	    }
+	    
+	    private int[][] getRandomCrossingPoint() throws Exception{
+	    	
+	    	if( basePopulation.getSizePopulation() % 2==1) throw new Exception("odd size of Population");
+	    	
+	    	int size = basePopulation.getSizePopulation()/2;
+	    	int noCut =crossover.getNoOfCut();
+	    	
+	    	Random random= new Random();
+	    	int[][] result = new int[size][noCut];
+	    	
+	    	for(int i=0;i<size;i++){
+	    		for(int j=0;j<noCut;j++){
+	    			result[i][j]= random.nextInt(graph.getNoVertex()-1);
+	    		}
+	    	}
+	    	
+	    	return result;
 	    }
 }
