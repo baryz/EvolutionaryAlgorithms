@@ -6,13 +6,13 @@ import java.util.Random;
 import distribution.RandomByDistribution;
 
 public class Reproduction {
-	   public  ArrayList<Integer> rank(Population initPopul) throws NullPointerException{
+	   public  ArrayList<Integer> rank(Population basePopul) throws NullPointerException{
 	        
 	        ArrayList<Integer> result= new ArrayList<>();
 	        
-	        if((initPopul.getSizePopulation()%2) == 1) throw new NullPointerException();
+	        if((basePopul.getSizePopulation()%2) == 1) throw new NullPointerException();
 	        
-	        Chromosom[] chrom= initPopul.sortByFitness();
+	        Chromosom[] chrom= basePopul.sortByFitness();
 	        double[] probab = evalProbabByRank(chrom.length);
 	        RandomByDistribution grbd= new RandomByDistribution(chrom.length);
 	        grbd.setProbability(probab);
@@ -30,7 +30,7 @@ public class Reproduction {
 	    }
 	    
 	    public void check(){
-	        Random randGen = new Random();
+	        
 	         double rankMin=1.0;
 	        double rankMax=64.0;
 	        double sumRank=(rankMin+rankMax)/2;

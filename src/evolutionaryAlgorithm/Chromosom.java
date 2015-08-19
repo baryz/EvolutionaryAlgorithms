@@ -127,6 +127,13 @@ public class Chromosom {
 
 	    }
 	    
+	    public String getClique(){
+	    	String result="";
+	    	for(Gen x:gens){
+	    		if(x.getValue()==true) result+= x.getLabel()+", ";
+	    	}
+	    	return result;
+	    }
 	    @Override
 	    public  Chromosom clone() throws CloneNotSupportedException{
 	        Chromosom result=  new Chromosom(gens.length);
@@ -148,7 +155,8 @@ public class Chromosom {
 	    		resultLabel.append(String.format("%3d", x.getLabel()));
 	    	}
 	    	String result=resultValue.toString()+"\n"+resultLabel.toString();
-
+	    	result+= "\n FITNESS : "+this.getFitnes();
+	    	
 	    	
 	    	return result;
 	    }

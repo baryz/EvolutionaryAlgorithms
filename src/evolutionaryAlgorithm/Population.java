@@ -5,14 +5,16 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class Population {
-
-	
+	 private final int id;
+	 private  static int counter;
 	 private ArrayList<Chromosom> chromosome;
-     //private Chromosom[] chromosome;
-     //private int sizePopulation;
+
      
      public Population(int inSizePopulation){
-         //sizePopulation=inSizePopulation;
+         
+    	 id=counter;
+    	 System.out.println("CREATE POPULATION ID: "+ counter);
+    	 counter++;
          chromosome = new ArrayList<>(inSizePopulation);
      }
      
@@ -35,6 +37,23 @@ public class Population {
          return result/chromosome.size();
      }
      
+     public Chromosom getBestChromosome(){
+    	 int bestFitness=0;
+    	 Chromosom result = new Chromosom(chromosome.get(0).getSize());
+    	 for(Chromosom x:chromosome){
+    		 if( x.getFitnes()>bestFitness){
+    			 result= x;
+    			 bestFitness=x.getFitnes();
+    		 }
+    	 }
+    	 
+    	 return result;
+     }
+     
+     public void clear(){
+    	 chromosome.clear();
+    }
+     
      
      public Chromosom[] sortByFitness()  {
          Comparator<Chromosom> chromComparator= new Comparator<Chromosom>() {
@@ -50,5 +69,23 @@ public class Population {
          
          return result;
      }
+     
+    @Override
+    public  Population clone() throws CloneNotSupportedException{
+        Population resultPopulation= new Population(this.getSizePopulation());
+    	for(Chromosom x:this.chromosome){
+    		resultPopulation.chromosome.add(x);
+    	}
+    	
+        return resultPopulation;
+        
+    }
+    
+    @Override
+    protected void finalize() throws Throwable {
+        System.out.println("DEMAGE Population!!!! ID: "+ this.id);
+      
+        super.finalize();
+    }
      
 }

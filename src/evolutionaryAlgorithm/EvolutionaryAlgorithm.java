@@ -4,36 +4,45 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-import evolutionaryAlgorithm.crossover.*;
 
+
+import evolutionaryAlgorithm.crossover.*;
+import evolutionaryAlgorithm.succession.SuccessionType;
 import graph.Graph;
 
 public class EvolutionaryAlgorithm {
 	
 	
 	private Chromosom bestChromosom;
-    private static final double initial_select_prob=0.4;
+    private static final double initial_select_prob=0.5;
     private static final double initial_mutate_prob=0.7;
+    private static final double offspring_selection_prob=0.5;
+    private static final double offspring_mutate_prob=0.6;
     
+    private static final int size_of_elite = 2;
+    private static final double part_replacement_factor=0.7;
 	private Graph graph;
 	private Population basePopulation;
 	private Population tempPopulation;
-	private CrossoverType crossingType;
+
 	private Crossover crossover;
-	
+	private SuccessionType successionType;
 	public ArrayList<Integer> pairForCrossing;
 	
     
-	public EvolutionaryAlgorithm(Graph inGraph,CrossoverType type){
+	public EvolutionaryAlgorithm(Graph inGraph,CrossoverType crossType,SuccessionType succesType){
         graph=inGraph;
         basePopulation=new Population(graph.getNoVertex());
         tempPopulation=new Population(graph.getNoVertex());
+      
+        
         bestChromosom= new Chromosom(graph.getNoVertex());
-       
         pairForCrossing= new ArrayList<>();
-        crossingType=type;
-	    CrossoverFactory factory = new CrossoverFactory();
-	    crossover=factory.produceCrossover(crossingType);
+        CrossoverFactory factory = new CrossoverFactory();
+	    crossover=factory.produceCrossover(crossType);
+	    successionType=succesType;
+	    
+	    
      }
 	
 	public static void main(String [] args){
@@ -43,14 +52,14 @@ public class EvolutionaryAlgorithm {
         /*-----------LOAD WITH FILE------------*/
         overallStartTimer=System.currentTimeMillis();
         startTimer=System.currentTimeMillis();
-        Graph graphEx=new Graph("resourceGraph/test16.clq");
+        Graph graphEx=new Graph("resourceGraph/keller4.clq");
         stopTimer=System.currentTimeMillis();
         time=stopTimer-startTimer;
         System.out.println("Loading graph's time with File---------> "+ time + " MS");
         
         /*-----------Init----------*/
         startTimer=System.currentTimeMillis();
-        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,CrossoverType.ONE_POINT);
+        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,CrossoverType.ONE_POINT,SuccessionType.SIMPLY);
         stopTimer=System.currentTimeMillis();
         time=stopTimer-startTimer;
         System.out.println("Init  time---------> "+ time + " MS");
@@ -73,7 +82,7 @@ public class EvolutionaryAlgorithm {
             stopTimer=System.currentTimeMillis();
             time=stopTimer-startTimer;
             System.out.println("Mutate Init pop  time ------> "+ time + " MS");
-        
+          
             
             /*-------Local Optimization------*/
             startTimer=System.currentTimeMillis();
@@ -82,12 +91,45 @@ public class EvolutionaryAlgorithm {
             time=stopTimer-startTimer;
             System.out.println("Local Optimization InitPop  time----->: "+ time + " MS");
             
-            time=stopTimer-overallStartTimer;
-            alg.reproduction();
-            System.out.println("Overall  time----->: "+ time + " MS");
+            System.out.println("BEST INIT AFTER GO : "+ alg.basePopulation.getBestChromosome().getClique());
+            System.out.println("BEST INIT: "+ alg.basePopulation.getBestChromosome().getFitnes());
+            System.out.println("AVG INIT: "+ alg.basePopulation.getAvgFitness());
             
+            for(int i=0;i<10;i++){
+	            System.out.println(i+ " ITERATION");
+	            /*-------Reproduction Crossover------*/
+	            startTimer=System.currentTimeMillis();
+	            alg.reproduction();
+	            stopTimer=System.currentTimeMillis();
+	            time=stopTimer-startTimer;
+	            //System.out.println("Reproduction  time----->: "+ time + " MS");
+	            
+	            /*-------Mutate------*/
+	            startTimer=System.currentTimeMillis();
+	            alg.mutateTempPopulation();
+	            stopTimer=System.currentTimeMillis();
+	            time=stopTimer-startTimer;
+	            //System.out.println("Mutate after crossover  time----->: "+ time + " MS");
+	            
+	            /*-------Local Optimization after genetic operands------*/
+	            startTimer=System.currentTimeMillis();
+	            alg.localOptimizationAfterGeneticOperation();
+	            stopTimer=System.currentTimeMillis();
+	            time=stopTimer-startTimer;
+	            //System.out.println("Local Optimization after genetic operands  time----->: "+ time + " MS");
+	            
+	            
+
+	           
+	           System.out.println(i +". BEST TEMP: "+ alg.tempPopulation.getBestChromosome().getFitnes());
+	           System.out.println(i +". BEST: "+ alg.tempPopulation.getBestChromosome().getClique());
+	           System.out.println(i +". AVG TEMP: "+ alg.tempPopulation.getAvgFitness());
+	           alg.prepareNextPopulation();
+            }
            
-            
+            stopTimer=System.currentTimeMillis();
+            time=stopTimer-overallStartTimer;
+            System.out.println("Overall  time----->: "+ time + " MS");
         }catch(CloneNotSupportedException ex){
             ex.printStackTrace();
         }catch(Exception ex){
@@ -184,7 +226,35 @@ public class EvolutionaryAlgorithm {
 
 	 }
 	 
-	    public void localOptimization()throws CloneNotSupportedException{
+	 public void mutateTempPopulation() throws CloneNotSupportedException {
+	        
+		 Random doubleGenerator=new Random();
+	        double doubleRandom;
+	        int countMutatedChrom=0;
+	        int countMutatedGen=0;
+	        int sizeChromosom=tempPopulation.getChromosom(0).getSize();
+	        for(int i=0;i<tempPopulation.getSizePopulation();i++){
+	            doubleRandom = doubleGenerator.nextDouble();
+	            //System.out.println("Cz mutuje chromosom: "+ i +  " draw: " + doubleRandom) ;
+	            if(doubleRandom<offspring_selection_prob){
+	                countMutatedChrom++;
+	                for(int j=0;j<sizeChromosom;j++){
+	                    doubleRandom=doubleGenerator.nextDouble();
+	                    //System.out.println("Czy mutuje gen "+ j +" draw"+ doubleRandom);
+	                    if(doubleRandom<offspring_mutate_prob){
+	                        countMutatedGen++;
+	                        tempPopulation.getChromosom(i).setNegateGen(j);
+	                    }
+	                }
+	            }
+	        }
+	        double percentMutate=((double)countMutatedChrom)/(double)tempPopulation.getSizePopulation();
+	        double percentMutateGen=(double)countMutatedGen/(double)(tempPopulation.getSizePopulation()*sizeChromosom);
+	        //System.out.println("Zmutowane chromosomy:" + countMutatedChrom+" Zmutowane geny: " + countMutatedGen);
+	        //System.out.println("Osobniki: " +percentMutate+ " Geny: "+ percentMutateGen );
+	 }
+	 
+	    public void localOptimization() throws CloneNotSupportedException{
 	        
 	         //inputChrom.print();
 	        //graph.printEdge();
@@ -225,6 +295,7 @@ public class EvolutionaryAlgorithm {
 	            boolean[] booleanArrayVertex=subGraph.getBoolArrayVertex();
 	            boolean[] check = new boolean[booleanArrayVertex.length];
 	            if(Arrays.equals(booleanArrayVertex, check)){
+	            	
 	                System.out.println("ERROR !!!!!!!!!!");
 	              
 	            }
@@ -251,24 +322,50 @@ public class EvolutionaryAlgorithm {
 	        }
 	    }
 	    
+	    public void localOptimizationAfterGeneticOperation() throws CloneNotSupportedException{
+	        
+	      
+	        Graph subGraph = null;
+	      
+	        for(int i=0;i<tempPopulation.getSizePopulation();i++){
+	           
+	            subGraph= (Graph)graph.clone();
+	            subGraph.loadChromosom(tempPopulation.getChromosom(i));
+	            subGraph.extractionClique();
+	            
+	            
+	            boolean[] booleanArrayVertex=subGraph.getBoolArrayVertex();
+	            /*
+	            boolean[] check = new boolean[booleanArrayVertex.length];
+	            if(Arrays.equals(booleanArrayVertex, check)){
+	                System.out.println("ERROR !!!!!!!!!!");
+	                
+	            } */
+	            tempPopulation.getChromosom(i).update(booleanArrayVertex);
+	            
+	            subGraph.improvementClique(graph,tempPopulation.getChromosom(i));
+	       
+
+	            
+	        }
+	    }
+	    
 	    public void reproduction() throws CloneNotSupportedException,Exception{
 	        
 	        pairForCrossing.clear();
+	        tempPopulation.clear();
 	        Reproduction repro = new Reproduction();
 	        //repro.check();
 	        pairForCrossing=repro.rank(this.basePopulation);
 	        
-	        /*for(int x:pairForCrossing){
-	            System.out.println("X: "+ x +" chromosom: \n"+ basePopulation.getChromosom(x).toString());
-	        }*/
+	        for(int x:pairForCrossing){
+	           // System.out.println("X: "+ x +" chromosom: \n"+ basePopulation.getChromosom(x).toString());
+	        }
 	        
 	      
 	      
 	        int[][] tableOfPointsCrossing =getRandomCrossingPoint();
-	        
-	        
-	        
-	        for(int i=0; i<tableOfPointsCrossing.length;i++){
+	         for(int i=0; i<tableOfPointsCrossing.length;i++){
 	    	    Chromosom[] chromosomeAfterCrossing= new Chromosom[2];
 	        	crossover.setParameters(tableOfPointsCrossing[i],
 	    	    		basePopulation.getChromosom(pairForCrossing.get((2*i))), 
@@ -279,14 +376,75 @@ public class EvolutionaryAlgorithm {
 	        }
 	        
 	       
-	        /* for(int x:pairForCrossing){
-	            System.out.println("X: "+ x +" chromosom: \n"+ basePopulation.getChromosom(x).toString());
+	        for(int x:pairForCrossing){
+	            //System.out.println("X: "+ x +" chromosom: \n"+ basePopulation.getChromosom(x).toString());
 	        }
 	        for(int i=0;i<tempPopulation.getSizePopulation();i++){
-	        	System.out.println(i+".CHromosom: \n"+ tempPopulation.getChromosom(i));
-	        } */
+	        	//System.out.println(i+".CHromosom: \n"+ tempPopulation.getChromosom(i));
+	        } 
 	        
 	        
+	    }
+	    
+	    public void prepareNextPopulation() throws CloneNotSupportedException{
+	    	
+	    	switch(successionType){
+		    	case SIMPLY: {
+		    		simplySuccession();
+		    		break;	
+		    	}
+		    	case ELITARY: {
+		    		elitarySuccesion();
+		    		break;
+		    	}
+		    	case PART_REPLACEMENT:{
+		    		partReplacementSuccesion();
+		    		break;
+		    	}
+	    	}
+	    	
+	    }
+	    
+	    private void partReplacementSuccesion() {
+			
+	    	Chromosom[] basePopulationSortTable=basePopulation.sortByFitness();
+	    	Chromosom[] tempPopulationSortTable=tempPopulation.sortByFitness();
+	    	
+	    	Population newPopulation = new Population(basePopulation.getSizePopulation());
+	    	int sizeOfPart=(int)Math.round(part_replacement_factor*basePopulation.getSizePopulation());
+	    	for(int i=0;i<sizeOfPart;i++){
+	    		newPopulation.addChromosom(tempPopulationSortTable[i]);
+	    	}
+	    	
+	    	for(int i=0;i<basePopulation.getSizePopulation()-sizeOfPart;i++){
+	    		newPopulation.addChromosom(basePopulationSortTable[i]);
+	    		
+	    	}
+	    	
+	    	basePopulation=newPopulation;
+		}
+
+		private void elitarySuccesion() {
+			
+	    	Chromosom[] basePopulationSortTable=basePopulation.sortByFitness();
+	    	Chromosom[] tempPopulationSortTable=tempPopulation.sortByFitness();
+	    	
+	    	Population newPopulation = new Population(basePopulation.getSizePopulation());
+	    	for(int i=0;i<size_of_elite;i++){
+	    		newPopulation.addChromosom(basePopulationSortTable[i]);
+	    	}
+	    	
+	    	for(int i=0;i<basePopulation.getSizePopulation()-size_of_elite;i++){
+	    		newPopulation.addChromosom(tempPopulationSortTable[i]);
+	    		
+	    	}
+	    	
+	    	basePopulation=newPopulation;
+			
+		}
+
+		private void simplySuccession() throws CloneNotSupportedException{
+	    	basePopulation= (Population)tempPopulation.clone();
 	    }
 	    
 	    private int[][] getRandomCrossingPoint() throws Exception{
@@ -307,4 +465,6 @@ public class EvolutionaryAlgorithm {
 	    	
 	    	return result;
 	    }
+	    
+	    
 }

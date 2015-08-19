@@ -86,8 +86,10 @@ public class Graph implements Cloneable {
     public ArrayList<Integer>  getMinDegreeVertex(){
         
         ArrayList<Integer> result=new ArrayList<>();
+        if(noVertex==0) return result;
+        
         int bestResult=degreeVertex.length;
-        result.add(degreeVertex.length);
+        //result.add(degreeVertex.length);
         for(int i=0;i<degreeVertex.length;i++){
             if(degreeVertex[i]<bestResult && degreeVertex[i]!=0){
                 bestResult=degreeVertex[i];
@@ -173,148 +175,153 @@ public class Graph implements Cloneable {
  
    }
    
-public boolean checkClique(ArrayList<Integer> setA, int inputNoVertex) {
+	public boolean checkClique(ArrayList<Integer> setA, int inputNoVertex) {
+	    
+	    if(setA.size()<1){
+	        return false;
+	    }
+	    for(Integer vertex:setA){
+	       if(!(edge[inputNoVertex][vertex])){
+	           return false;
+	        }
+	    }
+	    
+	    return true;
+	}
+
+
+
+	public void  extractionClique(){
+	    
+	    //System.out.println("Ocena osobnika: "+ inputChrom.getFitnes());
+	    //inputChrom.print();
+	    //loadChromosom(inputChrom);
+	    ArrayList<Integer> minVertexList=null;
+	    //System.out.println("Najmniejszy stopieñ: "+ getDegreeVertex(minVertexList.get(0)));
+	    
+	    Random randomGenerator=new Random();
+	   int randomInt=0;
+	   
+	    while(!(isClique())){
+	        minVertexList=getMinDegreeVertex();
+	        if(minVertexList.size()==0) break;
+	        randomInt=randomGenerator.nextInt(minVertexList.size());
+	        int noOfVertex = minVertexList.get(randomInt);
+	        removeEdgeOfVertex(noOfVertex);
+	       
+	    }
+	    
+	}
+
+
+	public int improvementClique (Graph inGraph,Chromosom inChrom) 
+	        throws CloneNotSupportedException{
+	    
+	    int countOfImprove=0;
+	    Random randGen=new Random();
+	    int randPosition =  randGen.nextInt(inChrom.getSize()-1);
+	    
+	    for(int i=randPosition;i<inChrom.getSize();i++){
+	        Gen tmpGen= (Gen) inChrom.getGen(i).clone();
+	        if(!(tmpGen.getValue())){
+	            if(inGraph.checkClique(inChrom.getLabelList(),tmpGen.getLabel())){
+	                inChrom.getGen(i).setValue();
+	                countOfImprove++;
+	            }
+	        }
+	    }
     
-    if(setA.size()<1){
-        return false;
-    }
-    for(Integer vertex:setA){
-       if(!(edge[inputNoVertex][vertex])){
-           return false;
-        }
-    }
-    
-    return true;
-}
+	    for(int i=0;i<randPosition;i++){
+	        Gen tmpGen= (Gen) inChrom.getGen(i).clone();
+	        if(!(tmpGen.getValue())){
+	            if(inGraph.checkClique(inChrom.getLabelList(),tmpGen.getLabel())){
+	                inChrom.getGen(i).setValue();
+	                countOfImprove++;
+	            }
+	        }
+	    }
+	    return countOfImprove;
+	}
 
 
 
-public void  extractionClique(){
-    
-    //System.out.println("Ocena osobnika: "+ inputChrom.getFitnes());
-    //inputChrom.print();
-    //loadChromosom(inputChrom);
-    ArrayList<Integer> minVertexList=null;
-    //System.out.println("Najmniejszy stopieñ: "+ getDegreeVertex(minVertexList.get(0)));
-    
-    Random randomGenerator=new Random();
-   int randomInt=0;
-   int i=0;
-    while(!(isClique())){
-        minVertexList=getMinDegreeVertex();
-        randomInt=randomGenerator.nextInt(minVertexList.size());
-        int noOfVertex = minVertexList.get(randomInt);
-        removeEdgeOfVertex(noOfVertex);
-        i++;
-    }
-    
-}
+	public boolean isClique() {
+	  
+		boolean isEmptyGraph=true;
+	   for(int degree:degreeVertex){
+		   if(degree!=0) isEmptyGraph=false;
+	       if(degree!=0 && degree!=(noVertex-1))
+	           return false;
+	   }
+	   if(isEmptyGraph) return false;
+	   return true;
+	}
 
 
-public int improvementClique (Graph inGraph,Chromosom inChrom) 
-        throws CloneNotSupportedException{
-    
-    int countOfImprove=0;
-    Random randGen=new Random();
-    int randPosition =  randGen.nextInt(inChrom.getSize()-1);
-    
-    for(int i=randPosition;i<inChrom.getSize();i++){
-        Gen tmpGen= (Gen) inChrom.getGen(i).clone();
-        if(!(tmpGen.getValue())){
-            if(inGraph.checkClique(inChrom.getLabelList(),tmpGen.getLabel())){
-                inChrom.getGen(i).setValue();
-                countOfImprove++;
-            }
-        }
-    }
-    
-    for(int i=0;i<randPosition;i++){
-        Gen tmpGen= (Gen) inChrom.getGen(i).clone();
-        if(!(tmpGen.getValue())){
-            if(inGraph.checkClique(inChrom.getLabelList(),tmpGen.getLabel())){
-                inChrom.getGen(i).setValue();
-                countOfImprove++;
-            }
-        }
-    }
-    return countOfImprove;
-}
+	public void loadChromosom (Chromosom inputChrom) throws CloneNotSupportedException{
+	    Gen tmpGen=null;
+	    int vertex;
+	    for(int i=0;i<inputChrom.getSize();i++){
+	        if(!(inputChrom.getGen(i).getValue())){
+	            tmpGen=(Gen)inputChrom.getGen(i).clone();
+	            //tmpGen.setLabel(10);
+	            vertex=tmpGen.getLabel();
+	            this.removeEdgeOfVertex(vertex);
+	        }
+	    }
+	}
 
 
+	private void removeEdgeOfVertex(int inputNoVertex){
+	   
+	   if(degreeVertex[inputNoVertex]==0) {
+	       return;
+	   }
+	   
+	   for(int i=0;i<degreeVertex.length;i++){
+	        if(this.edge[i][inputNoVertex]){
+	            this.degreeVertex[inputNoVertex]--;
+	            this.degreeVertex[i]--;
+	            if(this.degreeVertex[i]==0){ 
+	                noVertex--;
+	                //System.out.println("Usuwam wierzcholek: "+ i);
+	            }
+	            this.edge[i][inputNoVertex]=false;
+	            this.edge[inputNoVertex][i]=false;
+	        }
+	        
+	    }
+	    noVertex--;
+	}
 
-public boolean isClique() {
-  
-   for(int degree:degreeVertex){
-       if(degree!=0 && degree!=(noVertex-1))
-           return false;
-   }
-   return true;
-}
-
-
-public void loadChromosom (Chromosom inputChrom) throws CloneNotSupportedException{
-    Gen tmpGen=null;
-    int vertex;
-    for(int i=0;i<inputChrom.getSize();i++){
-        if(!(inputChrom.getGen(i).getValue())){
-            tmpGen=(Gen)inputChrom.getGen(i).clone();
-            //tmpGen.setLabel(10);
-            vertex=tmpGen.getLabel();
-            this.removeEdgeOfVertex(vertex);
-        }
-    }
-}
-
-
-private void removeEdgeOfVertex(int inputNoVertex){
-   
-   if(degreeVertex[inputNoVertex]==0) {
-       return;
-   }
-   
-   for(int i=0;i<degreeVertex.length;i++){
-        if(this.edge[i][inputNoVertex]){
-            this.degreeVertex[inputNoVertex]--;
-            this.degreeVertex[i]--;
-            if(this.degreeVertex[i]==0){ 
-                noVertex--;
-                //System.out.println("Usuwam wierzcholek: "+ i);
-            }
-            this.edge[i][inputNoVertex]=false;
-            this.edge[inputNoVertex][i]=false;
-        }
-        
-    }
-    noVertex--;
-}
-
-public boolean[] getBoolArrayVertex(){
-    
-    boolean[] emptyRow = new boolean[edge.length];
-    boolean[] result = new boolean[edge.length];
-    for(int i=0;i<edge.length;i++){
-        if(!(Arrays.equals(edge[i], emptyRow))){
-            result[i]=true;
-        }
-    }
-    
-    return result;
-}
-public void setTest(){
-    noVertex=10;
-    degreeVertex[0]=100;
-    edge[1][1]=true;
-}
-
-@Override
-public  Graph clone() throws CloneNotSupportedException{
-    Graph result=  new Graph(noVertex);
-    for(int i=0;i<noVertex;i++){
-        result.edge[i]= (boolean[])this.edge[i].clone();
-    }
-    //result.edge= (boolean[][]) this.edge.clone();
-    result.degreeVertex=(int[]) this.degreeVertex.clone();
-    return result;
-    
-}
+	public boolean[] getBoolArrayVertex(){
+	    
+	    boolean[] emptyRow = new boolean[edge.length];
+	    boolean[] result = new boolean[edge.length];
+	    for(int i=0;i<edge.length;i++){
+	        if(!(Arrays.equals(edge[i], emptyRow))){
+	            result[i]=true;
+	        }
+	    }
+	    
+	    return result;
+	}
+	
+	public void setTest(){
+	    noVertex=10;
+	    degreeVertex[0]=100;
+	    edge[1][1]=true;
+	}
+	
+	@Override
+	public  Graph clone() throws CloneNotSupportedException{
+	    Graph result=  new Graph(noVertex);
+	    for(int i=0;i<noVertex;i++){
+	        result.edge[i]= (boolean[])this.edge[i].clone();
+	    }
+	    //result.edge= (boolean[][]) this.edge.clone();
+	    result.degreeVertex=(int[]) this.degreeVertex.clone();
+	    return result;
+	    
+	}
 }
