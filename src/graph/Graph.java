@@ -15,6 +15,9 @@ public class Graph implements Cloneable {
     private boolean[][] edge;
     private int noVertex;
     private int[] degreeVertex;
+    private String name;
+    
+    public String filename;
     
     @SuppressWarnings("finally")
 	private int getCountVertexWithFile(String fileName){
@@ -48,13 +51,15 @@ public class Graph implements Cloneable {
         degreeVertex = new int[noVertex];
     }
     
-    public Graph(String fileName){
-        noVertex=getCountVertexWithFile(fileName);
+    public Graph(String filename,String name){
+    	this.setName(name);
+        noVertex=getCountVertexWithFile(filename);
         edge = new boolean[noVertex][noVertex];
         degreeVertex=new int[noVertex];
+        this.filename=filename;
         BufferedReader br=null;
         try{
-            br= new BufferedReader(new FileReader(fileName));
+            br= new BufferedReader(new FileReader(filename));
             String sCurrentLine;
             
             while ((sCurrentLine = br.readLine()) != null) {
@@ -70,8 +75,14 @@ public class Graph implements Cloneable {
      }
     }
     
-
     
+    public void setName(String graphName){
+    	this.name=graphName;
+    }
+    
+    public String getName(){
+    	return this.name;
+    }
     private void setEdge(int noVertexA,int noVertexB){
         edge[noVertexA][noVertexB] = true;
         edge[noVertexB][noVertexA] = true;

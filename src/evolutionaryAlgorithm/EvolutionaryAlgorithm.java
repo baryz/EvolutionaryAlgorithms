@@ -1,11 +1,21 @@
 package evolutionaryAlgorithm;
 
+
+import java.awt.geom.CubicCurve2D;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-
-
+import config.Config;
 import evolutionaryAlgorithm.crossover.*;
 import evolutionaryAlgorithm.succession.SuccessionType;
 import graph.Graph;
@@ -14,9 +24,9 @@ public class EvolutionaryAlgorithm {
 	
 	
 	private Chromosom bestChromosom;
-    private static final double initial_select_prob=0.5;
-    private static final double initial_mutate_prob=0.7;
-    private static final double offspring_selection_prob=0.5;
+    private final double initial_select_prob=0.4;
+    private final double initial_mutate_prob=0.7;
+    private static final double offspring_selection_prob=0.3;
     private static final double offspring_mutate_prob=0.6;
     
     private static final int size_of_elite = 2;
@@ -27,10 +37,13 @@ public class EvolutionaryAlgorithm {
 
 	private Crossover crossover;
 	private SuccessionType successionType;
+	private final Config config;
+	
 	public ArrayList<Integer> pairForCrossing;
 	
-    
-	public EvolutionaryAlgorithm(Graph inGraph,CrossoverType crossType,SuccessionType succesType){
+	
+	
+	public EvolutionaryAlgorithm(Graph inGraph,CrossoverType crossType,SuccessionType succesType,Config conf){
         graph=inGraph;
         basePopulation=new Population(graph.getNoVertex());
         tempPopulation=new Population(graph.getNoVertex());
@@ -41,33 +54,50 @@ public class EvolutionaryAlgorithm {
         CrossoverFactory factory = new CrossoverFactory();
 	    crossover=factory.produceCrossover(crossType);
 	    successionType=succesType;
+	    config=conf;
 	    
 	    
      }
 	
 	public static void main(String [] args){
 		
+		String graphName="DSJC1000-5";
+		Config conf= new Config();
 		
-        long overallStartTimer,startTimer, stopTimer,time;
-        /*-----------LOAD WITH FILE------------*/
+		 long overallStartTimer,startTimer, stopTimer,time;
+        /*-----------LOAD GRAPH WITH FILE------------*/
         overallStartTimer=System.currentTimeMillis();
         startTimer=System.currentTimeMillis();
-        Graph graphEx=new Graph("resourceGraph/keller4.clq");
+        Graph graphEx=new Graph(conf.getInGraphDirPath()+ graphName + conf.getInGraphExtension(),graphName);
         stopTimer=System.currentTimeMillis();
         time=stopTimer-startTimer;
         System.out.println("Loading graph's time with File---------> "+ time + " MS");
         
         /*-----------Init----------*/
         startTimer=System.currentTimeMillis();
-        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,CrossoverType.ONE_POINT,SuccessionType.SIMPLY);
+        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,CrossoverType.ONE_POINT,SuccessionType.PART_REPLACEMENT,conf);
         stopTimer=System.currentTimeMillis();
+        
         time=stopTimer-startTimer;
         System.out.println("Init  time---------> "+ time + " MS");
         
+        alg.run();
+        
+        stopTimer=System.currentTimeMillis();
+        time=stopTimer-overallStartTimer;
+        System.out.println("Overall  time---------> "+ time + " MS");
+     
+        
+
+	}
+	
+	public void run(){
+		
+		long startTimer, stopTimer,time,startIterationTimer;
         /*-----------Create Init Population----------*/
         startTimer=System.currentTimeMillis();
         try {
-            alg.generateInitPopulation();
+           generateInitPopulation();
         }catch(CloneNotSupportedException ex){
             ex.printStackTrace();
         }
@@ -75,72 +105,77 @@ public class EvolutionaryAlgorithm {
         time=stopTimer-startTimer;
         System.out.println("Create Init Pop  time ------> "+ time + " MS");
         
-        try {
-            /*------Mutate Init pop --------*/
+        try{
+        	
+        	loadPopulationWithFile(config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
+        	
+        	/*
+        	//------Mutate Init pop --------
             startTimer=System.currentTimeMillis();
-            alg.mutateInitPopulation();
+            mutateInitPopulation();
             stopTimer=System.currentTimeMillis();
             time=stopTimer-startTimer;
             System.out.println("Mutate Init pop  time ------> "+ time + " MS");
-          
-            
-            /*-------Local Optimization------*/
+           
+            //-------Local Optimization------
             startTimer=System.currentTimeMillis();
-            alg.localOptimization();
+            localOptimization();
             stopTimer=System.currentTimeMillis();
             time=stopTimer-startTimer;
             System.out.println("Local Optimization InitPop  time----->: "+ time + " MS");
+            */
             
-            System.out.println("BEST INIT AFTER GO : "+ alg.basePopulation.getBestChromosome().getClique());
-            System.out.println("BEST INIT: "+ alg.basePopulation.getBestChromosome().getFitnes());
-            System.out.println("AVG INIT: "+ alg.basePopulation.getAvgFitness());
+            
+            System.out.println("BEST INIT AFTER GO : "+ basePopulation.getBestChromosome().getClique());
+            System.out.println("BEST INIT: "+ basePopulation.getBestChromosome().getFitnes());
+            System.out.println("AVG INIT: "+ basePopulation.getAvgFitness());
+            
+           
+            //savePopulationToFile(basePopulation,config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
+            
             
             for(int i=0;i<10;i++){
-	            System.out.println(i+ " ITERATION");
-	            /*-------Reproduction Crossover------*/
-	            startTimer=System.currentTimeMillis();
-	            alg.reproduction();
-	            stopTimer=System.currentTimeMillis();
-	            time=stopTimer-startTimer;
-	            //System.out.println("Reproduction  time----->: "+ time + " MS");
-	            
-	            /*-------Mutate------*/
-	            startTimer=System.currentTimeMillis();
-	            alg.mutateTempPopulation();
-	            stopTimer=System.currentTimeMillis();
-	            time=stopTimer-startTimer;
-	            //System.out.println("Mutate after crossover  time----->: "+ time + " MS");
-	            
-	            /*-------Local Optimization after genetic operands------*/
-	            startTimer=System.currentTimeMillis();
-	            alg.localOptimizationAfterGeneticOperation();
-	            stopTimer=System.currentTimeMillis();
-	            time=stopTimer-startTimer;
-	            //System.out.println("Local Optimization after genetic operands  time----->: "+ time + " MS");
-	            
-	            
-
-	           
-	           System.out.println(i +". BEST TEMP: "+ alg.tempPopulation.getBestChromosome().getFitnes());
-	           System.out.println(i +". BEST: "+ alg.tempPopulation.getBestChromosome().getClique());
-	           System.out.println(i +". AVG TEMP: "+ alg.tempPopulation.getAvgFitness());
-	           alg.prepareNextPopulation();
+            	startIterationTimer=System.currentTimeMillis();
+            	System.out.println(i+ " ITERATION");
+   	            /*-------Reproduction Crossover------*/
+   	            startTimer=System.currentTimeMillis();
+   	            reproduction();
+   	            stopTimer=System.currentTimeMillis();
+   	            time=stopTimer-startTimer;
+   	            //System.out.println("Reproduction  time----->: "+ time + " MS");
+   	            
+   	            /*-------Mutate------*/
+   	            startTimer=System.currentTimeMillis();
+   	            mutateTempPopulation();
+   	            stopTimer=System.currentTimeMillis();
+   	            time=stopTimer-startTimer;
+   	            //System.out.println("Mutate after crossover  time----->: "+ time + " MS");
+   	            
+   	            /*-------Local Optimization after genetic operands------*/
+   	            startTimer=System.currentTimeMillis();
+   	            localOptimizationAfterGeneticOperation();
+   	            stopTimer=System.currentTimeMillis();
+   	            time=stopTimer-startTimer;
+   	            //System.out.println("Local Optimization after genetic operands  time----->: "+ time + " MS");
+   	            
+   	           System.out.println(i +". BEST TEMP: "+ tempPopulation.getBestChromosome().getFitnes());
+   	           System.out.println(i +". BEST: "+ tempPopulation.getBestChromosome().getClique());
+   	           System.out.println(i +". AVG TEMP: "+ tempPopulation.getAvgFitness());
+   	           prepareNextPopulation();
+   	           
+   	           stopTimer=System.currentTimeMillis();
+   	           time=stopTimer-startIterationTimer;
+   	           System.out.println("IT TIME:  "+ time + " ms");
             }
-           
-            stopTimer=System.currentTimeMillis();
-            time=stopTimer-overallStartTimer;
-            System.out.println("Overall  time----->: "+ time + " MS");
-        }catch(CloneNotSupportedException ex){
-            ex.printStackTrace();
-        }catch(Exception ex){
-            ex.printStackTrace();
-        }
-        
-
+	    }catch(CloneNotSupportedException ex){
+	        ex.printStackTrace();
+	    }catch(Exception ex){
+	        ex.printStackTrace();
+    }
 	}
 	
 	public void generateInitPopulation() throws CloneNotSupportedException {
-        //int bestResult=0;
+        
 		Chromosom xChromosom =null;
         Random  randomVertexGen= new Random();
         for(int j=0;j<graph.getNoVertex();j++){
@@ -357,14 +392,8 @@ public class EvolutionaryAlgorithm {
 	        Reproduction repro = new Reproduction();
 	        //repro.check();
 	        pairForCrossing=repro.rank(this.basePopulation);
-	        
-	        for(int x:pairForCrossing){
-	           // System.out.println("X: "+ x +" chromosom: \n"+ basePopulation.getChromosom(x).toString());
-	        }
-	        
-	      
-	      
-	        int[][] tableOfPointsCrossing =getRandomCrossingPoint();
+	       
+	      int[][] tableOfPointsCrossing =getRandomCrossingPoint();
 	         for(int i=0; i<tableOfPointsCrossing.length;i++){
 	    	    Chromosom[] chromosomeAfterCrossing= new Chromosom[2];
 	        	crossover.setParameters(tableOfPointsCrossing[i],
@@ -374,14 +403,6 @@ public class EvolutionaryAlgorithm {
 	    	    tempPopulation.addChromosom(chromosomeAfterCrossing[0].clone());
 	    	    tempPopulation.addChromosom(chromosomeAfterCrossing[1].clone());
 	        }
-	        
-	       
-	        for(int x:pairForCrossing){
-	            //System.out.println("X: "+ x +" chromosom: \n"+ basePopulation.getChromosom(x).toString());
-	        }
-	        for(int i=0;i<tempPopulation.getSizePopulation();i++){
-	        	//System.out.println(i+".CHromosom: \n"+ tempPopulation.getChromosom(i));
-	        } 
 	        
 	        
 	    }
@@ -464,6 +485,50 @@ public class EvolutionaryAlgorithm {
 	    	}
 	    	
 	    	return result;
+	    }
+	    
+	    private void savePopulationToFile(Population pop,String directoryPath){
+	    	Path newFile = Paths.get(directoryPath);
+	    	
+	    	try{
+	    		Files.deleteIfExists(newFile);
+	    		newFile=Files.createFile(newFile);
+	    		BufferedWriter writer = Files.newBufferedWriter(newFile, Charset.defaultCharset());
+	    		writer.append("s initial_select_prob="+this.initial_select_prob +" initial_mutate_prob=" + this.initial_mutate_prob);
+	    		writer.newLine();
+	    		writer.append("s AVG FITNESS: " +pop.getAvgFitness() + "  BEST FITNESS: " + pop.getBestChromosome().getFitnes());
+	    		writer.newLine();
+	    		
+	    		for(Chromosom x:pop){
+	    			writer.append(x.getChromosomeCode());
+	    			writer.newLine();
+	    		}
+	    		writer.flush();
+	    	}catch (IOException ex){
+	    		System.out.println("Error creating file");
+	    	}
+	    }
+	    
+	    private void loadPopulationWithFile(String directoryPath){
+	    	
+	    	basePopulation.clear();
+	    	BufferedReader reader=null;
+	    	try{
+	    		reader = new BufferedReader(new FileReader(directoryPath));
+	    		String sCurrentLine;
+	    		
+	    		while ((sCurrentLine=reader.readLine())!=null){
+	    			if(sCurrentLine.charAt(0)=='s'){
+	    				continue;
+	    			}
+	    			
+	    			Chromosom tmpChrom= new Chromosom(sCurrentLine);
+	    			basePopulation.addChromosom(tmpChrom);
+	    		}
+	    		reader.close();
+	    	}catch(IOException ex){
+	    		System.out.println("Error loading file");
+	    	}
 	    }
 	    
 	    

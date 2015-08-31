@@ -3,8 +3,9 @@ package evolutionaryAlgorithm;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 
-public class Population {
+public class Population implements Iterable<Chromosom> {
 	 private final int id;
 	 private  static int counter;
 	 private ArrayList<Chromosom> chromosome;
@@ -87,5 +88,12 @@ public class Population {
       
         super.finalize();
     }
+
+	@Override
+	public Iterator<Chromosom> iterator() {
+		Iterator<Chromosom> it= chromosome.iterator();
+		return it;
+		
+	}
      
 }
