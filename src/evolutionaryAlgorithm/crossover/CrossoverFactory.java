@@ -11,10 +11,6 @@ public class CrossoverFactory implements ICrossoverFactory{
 			crossoverResult = new OnePointCrossover();
 				break;
 			}
-			case TWO_POINT:{
-				crossoverResult = new TwoPointCrossover();
-				break;
-			}
 			case MULTI_POINT:{
 				crossoverResult = new MultiCrossover();
 				break;

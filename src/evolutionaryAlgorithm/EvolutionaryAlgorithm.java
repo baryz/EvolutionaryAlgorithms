@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,6 +17,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import config.Config;
+import distribution.RandomWithoutDuplicate;
 import evolutionaryAlgorithm.crossover.*;
 import evolutionaryAlgorithm.succession.SuccessionType;
 import graph.Graph;
@@ -26,8 +28,8 @@ public class EvolutionaryAlgorithm {
 	private Chromosom bestChromosom;
     private final double initial_select_prob=0.4;
     private final double initial_mutate_prob=0.7;
-    private static final double offspring_selection_prob=0.3;
-    private static final double offspring_mutate_prob=0.6;
+    private static final double offspring_selection_prob=0.4;
+    private static final double offspring_mutate_prob=0.8;
     
     private static final int size_of_elite = 2;
     private static final double part_replacement_factor=0.7;
@@ -61,7 +63,7 @@ public class EvolutionaryAlgorithm {
 	
 	public static void main(String [] args){
 		
-		String graphName="DSJC1000-5";
+		String graphName="keller5";
 		Config conf= new Config();
 		
 		 long overallStartTimer,startTimer, stopTimer,time;
@@ -75,7 +77,7 @@ public class EvolutionaryAlgorithm {
         
         /*-----------Init----------*/
         startTimer=System.currentTimeMillis();
-        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,CrossoverType.ONE_POINT,SuccessionType.PART_REPLACEMENT,conf);
+        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,CrossoverType.MULTI_POINT,SuccessionType.ELITARY,conf);
         stopTimer=System.currentTimeMillis();
         
         time=stopTimer-startTimer;
@@ -95,7 +97,8 @@ public class EvolutionaryAlgorithm {
 		
 		long startTimer, stopTimer,time,startIterationTimer;
         /*-----------Create Init Population----------*/
-        startTimer=System.currentTimeMillis();
+        /*
+		startTimer=System.currentTimeMillis();
         try {
            generateInitPopulation();
         }catch(CloneNotSupportedException ex){
@@ -104,7 +107,7 @@ public class EvolutionaryAlgorithm {
         stopTimer=System.currentTimeMillis();
         time=stopTimer-startTimer;
         System.out.println("Create Init Pop  time ------> "+ time + " MS");
-        
+        */
         try{
         	
         	loadPopulationWithFile(config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
@@ -134,7 +137,7 @@ public class EvolutionaryAlgorithm {
             //savePopulationToFile(basePopulation,config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
             
             
-            for(int i=0;i<10;i++){
+            for(int i=0;i<20;i++){
             	startIterationTimer=System.currentTimeMillis();
             	System.out.println(i+ " ITERATION");
    	            /*-------Reproduction Crossover------*/
@@ -157,7 +160,9 @@ public class EvolutionaryAlgorithm {
    	            stopTimer=System.currentTimeMillis();
    	            time=stopTimer-startTimer;
    	            //System.out.println("Local Optimization after genetic operands  time----->: "+ time + " MS");
-   	            
+	           System.out.println(i +". BEST BASE: "+ basePopulation.getBestChromosome().getFitnes());
+   	           System.out.println(i +". BEST: "+ basePopulation.getBestChromosome().getClique());
+   	           System.out.println(i +". AVG BASE: "+ basePopulation.getAvgFitness());
    	           System.out.println(i +". BEST TEMP: "+ tempPopulation.getBestChromosome().getFitnes());
    	           System.out.println(i +". BEST: "+ tempPopulation.getBestChromosome().getClique());
    	           System.out.println(i +". AVG TEMP: "+ tempPopulation.getAvgFitness());
@@ -208,13 +213,9 @@ public class EvolutionaryAlgorithm {
             }
              
              xChromosom=new Chromosom(setA,graph.getNoVertex());
-             //xChromosom.print();
-             //System.out.println(j+".Ocena osobnika:"+xChromosom.getFitnes());
              basePopulation.addChromosom(xChromosom);
              if(xChromosom.getFitnes()>bestChromosom.getFitnes()){
                  bestChromosom=(Chromosom)xChromosom.clone();
-                 //bestResult=xChromosom.getFitnes();
-                 //System.out.println("BEST "+ xChromosom.getFitnes());
              }
 
        	}
@@ -225,8 +226,8 @@ public class EvolutionaryAlgorithm {
             basePopulation.addChromosom(randChromosom);
         }
         
-        System.out.println("BEST "+ bestChromosom.getFitnes());
-        System.out.println("AVG: "+basePopulation.getAvgFitness());
+       // System.out.println("BEST "+ bestChromosom.getFitnes());
+       // System.out.println("AVG: "+basePopulation.getAvgFitness());
         
 	}
 	
@@ -392,7 +393,7 @@ public class EvolutionaryAlgorithm {
 	        Reproduction repro = new Reproduction();
 	        //repro.check();
 	        pairForCrossing=repro.rank(this.basePopulation);
-	       
+	        crossover.setNoOfCut(20);
 	      int[][] tableOfPointsCrossing =getRandomCrossingPoint();
 	         for(int i=0; i<tableOfPointsCrossing.length;i++){
 	    	    Chromosom[] chromosomeAfterCrossing= new Chromosom[2];
@@ -474,14 +475,12 @@ public class EvolutionaryAlgorithm {
 	    	
 	    	int size = basePopulation.getSizePopulation()/2;
 	    	int noCut =crossover.getNoOfCut();
-	    	
 	    	Random random= new Random();
 	    	int[][] result = new int[size][noCut];
 	    	
 	    	for(int i=0;i<size;i++){
-	    		for(int j=0;j<noCut;j++){
-	    			result[i][j]= random.nextInt(graph.getNoVertex()-1);
-	    		}
+	    		result[i]= RandomWithoutDuplicate.get(noCut,graph.getNoVertex()-1);
+	    		Arrays.sort(result[i]);
 	    	}
 	    	
 	    	return result;
