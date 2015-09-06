@@ -14,7 +14,7 @@ public class Population implements Iterable<Chromosom> {
      public Population(int inSizePopulation){
          
     	 id=counter;
-    	 System.out.println("CREATE POPULATION ID: "+ counter);
+    	 //System.out.println("CREATE POPULATION ID: "+ counter);
     	 counter++;
          chromosome = new ArrayList<>(inSizePopulation);
      }

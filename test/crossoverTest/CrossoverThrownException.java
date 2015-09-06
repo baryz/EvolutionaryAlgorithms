@@ -1,4 +1,4 @@
-package CrossoverTest;
+package crossoverTest;
 
 import org.junit.BeforeClass;
 import org.junit.Test;

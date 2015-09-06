@@ -1,4 +1,4 @@
-package CrossoverTest;
+package crossoverTest;
 
 import java.util.Arrays;
 

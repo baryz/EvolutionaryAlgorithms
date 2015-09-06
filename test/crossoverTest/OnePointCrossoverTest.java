@@ -1,4 +1,4 @@
-package CrossoverTest;
+package crossoverTest;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

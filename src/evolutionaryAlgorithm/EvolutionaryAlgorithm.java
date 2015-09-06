@@ -17,6 +17,9 @@ import java.util.Random;
 import config.Config;
 import distribution.RandomWithoutDuplicate;
 import evolutionaryAlgorithm.crossover.*;
+import evolutionaryAlgorithm.reproduction.Reproduction;
+import evolutionaryAlgorithm.reproduction.ReproductionFactory;
+import evolutionaryAlgorithm.reproduction.ReproductionType;
 import evolutionaryAlgorithm.succession.SuccessionType;
 import graph.Graph;
 
@@ -36,6 +39,7 @@ public class EvolutionaryAlgorithm {
 	private Population tempPopulation;
 
 	private Crossover crossover;
+	private Reproduction reproduction;
 	private SuccessionType successionType;
 	private final Config config;
 	
@@ -43,7 +47,7 @@ public class EvolutionaryAlgorithm {
 	
 	
 	
-	public EvolutionaryAlgorithm(Graph inGraph,CrossoverType crossType,SuccessionType succesType,Config conf){
+	public EvolutionaryAlgorithm(Graph inGraph,ReproductionType reproType,CrossoverType crossType,SuccessionType succesType,Config conf){
         graph=inGraph;
         basePopulation=new Population(graph.getNoVertex());
         tempPopulation=new Population(graph.getNoVertex());
@@ -54,6 +58,8 @@ public class EvolutionaryAlgorithm {
         CrossoverFactory factory = new CrossoverFactory();
 	    crossover=factory.produceCrossover(crossType);
 	    successionType=succesType;
+	    ReproductionFactory reproductionFactory= new ReproductionFactory();
+	    reproduction=reproductionFactory.produceReproduction(reproType);
 	    config=conf;
 	    
 	    
@@ -75,7 +81,7 @@ public class EvolutionaryAlgorithm {
         
         /*-----------Init----------*/
         startTimer=System.currentTimeMillis();
-        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,CrossoverType.MULTI_POINT,SuccessionType.HAMMING_REPLACEMENT,conf);
+        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,ReproductionType.RANK,CrossoverType.MULTI_POINT,SuccessionType.PART_REPLACEMENT,conf);
         stopTimer=System.currentTimeMillis();
         
         time=stopTimer-startTimer;
@@ -110,7 +116,7 @@ public class EvolutionaryAlgorithm {
             //savePopulationToFile(basePopulation,config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
             
             
-            for(int i=0;i<50;i++){
+            for(int i=0;i<20;i++){
             	startIterationTimer=System.currentTimeMillis();
             	System.out.println(i+ " ITERATION");
    	            /*-------Reproduction Crossover------*/
@@ -376,9 +382,9 @@ public class EvolutionaryAlgorithm {
 	        
 	        pairForCrossing.clear();
 	        tempPopulation.clear();
-	        Reproduction repro = new Reproduction();
+	        pairForCrossing=reproduction.getPairForCrossing(basePopulation);
 	        //repro.check();
-	        pairForCrossing=repro.rank(this.basePopulation);
+	        //pairForCrossing=repro.rank(this.basePopulation);
 	        crossover.setNoOfCut(5);
 	      int[][] tableOfPointsCrossing =getRandomCrossingPoint();
 	         for(int i=0; i<tableOfPointsCrossing.length;i++){
