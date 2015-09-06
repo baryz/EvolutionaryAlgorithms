@@ -57,7 +57,7 @@ public class MultiCrossoverTest {
 	}
     
 	@Test
-	public final void shouldOnePointCrossoverTest(){
+	public final void shouldMultiCrossoverTest(){
 		
 		Chromosom parent1= new Chromosom(this.firstParentCode);
 		Chromosom parent2= new Chromosom(this.secondParentCode);

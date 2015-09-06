@@ -58,18 +58,6 @@ public class Chromosom {
 	        return result;
 	    }
 	    
-	    /*public boolean[] getBoolTable(){
-	    
-	        boolean[] result;
-	        result= new boolean[gens.length];
-	        int i=0;
-	        for(Gen gen:gens){
-	            result[i]=gen.getValue();
-	            i++;
-	        }
-	        return result;
-	    }*/
-	    
 	    public boolean  setNegateGen(int indexGen){
 	        boolean result=gens[indexGen].setValue();
 	        return result;
@@ -134,6 +122,7 @@ public class Chromosom {
 	    	}
 	    	return result;
 	    }
+	    
 	    @Override
 	    public  Chromosom clone() throws CloneNotSupportedException{
 	        Chromosom result=  new Chromosom(gens.length);
@@ -169,5 +158,15 @@ public class Chromosom {
 	    	}
 	    	
 	    	return resultValue.toString();
+	    }
+	    
+	    public int getHammingDistance(Chromosom x){
+	    	int result=0;
+	    	for(int i=0;i<gens.length;i++){
+	    		if(gens[i].getValue()!=x.gens[i].getValue()){
+	    			result++;
+	    		}
+	    	}
+	    	return result;
 	    }
 }

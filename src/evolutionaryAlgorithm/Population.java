@@ -30,6 +30,12 @@ public class Population implements Iterable<Chromosom> {
          return chromosome.get(index);
      }
      
+     public Chromosom setChromosom(int index,Chromosom chromosomX){
+    	 
+    	 Chromosom result=chromosome.set(index, chromosomX);
+    	 return result;
+     }
+     
      public double getAvgFitness(){
          double result=0.0;
          for(Chromosom chrom:chromosome){
