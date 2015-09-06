@@ -47,7 +47,7 @@ public class EvolutionaryAlgorithm {
 	
 	
 	
-	public EvolutionaryAlgorithm(Graph inGraph,ReproductionType reproType,CrossoverType crossType,SuccessionType succesType,Config conf){
+	public EvolutionaryAlgorithm(Graph inGraph,ReproductionType reproType,CrossoverType crossType,int noOfCut,SuccessionType succesType,Config conf){
         graph=inGraph;
         basePopulation=new Population(graph.getNoVertex());
         tempPopulation=new Population(graph.getNoVertex());
@@ -57,6 +57,7 @@ public class EvolutionaryAlgorithm {
         pairForCrossing= new ArrayList<>();
         CrossoverFactory factory = new CrossoverFactory();
 	    crossover=factory.produceCrossover(crossType);
+	    crossover.setNoOfCut(noOfCut);
 	    successionType=succesType;
 	    ReproductionFactory reproductionFactory= new ReproductionFactory();
 	    reproduction=reproductionFactory.produceReproduction(reproType);
@@ -81,7 +82,10 @@ public class EvolutionaryAlgorithm {
         
         /*-----------Init----------*/
         startTimer=System.currentTimeMillis();
-        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,ReproductionType.RANK,CrossoverType.MULTI_POINT,SuccessionType.PART_REPLACEMENT,conf);
+        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,ReproductionType.ROULLETEWHEEL,
+        						CrossoverType.MULTI_POINT,5,
+        						SuccessionType.HAMMING_REPLACEMENT,
+        						conf);
         stopTimer=System.currentTimeMillis();
         
         time=stopTimer-startTimer;
@@ -385,7 +389,7 @@ public class EvolutionaryAlgorithm {
 	        pairForCrossing=reproduction.getPairForCrossing(basePopulation);
 	        //repro.check();
 	        //pairForCrossing=repro.rank(this.basePopulation);
-	        crossover.setNoOfCut(5);
+	        
 	      int[][] tableOfPointsCrossing =getRandomCrossingPoint();
 	         for(int i=0; i<tableOfPointsCrossing.length;i++){
 	    	    Chromosom[] chromosomeAfterCrossing= new Chromosom[2];
@@ -548,7 +552,6 @@ public class EvolutionaryAlgorithm {
 	    	
 	    	int size = basePopulation.getSizePopulation()/2;
 	    	int noCut =crossover.getNoOfCut();
-	    	Random random= new Random();
 	    	int[][] result = new int[size][noCut];
 	    	
 	    	for(int i=0;i<size;i++){
