@@ -41,6 +41,8 @@ public class EvolutionaryAlgorithm {
 	private Crossover crossover;
 	private Reproduction reproduction;
 	private SuccessionType successionType;
+	
+	private Statistic stats;
 	private final Config config;
 	
 	public ArrayList<Integer> pairForCrossing;
@@ -110,20 +112,16 @@ public class EvolutionaryAlgorithm {
         	 /*-----------Create Init Population----------*/
         	loadPopulationWithFile(config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
         	//createInitPopulationAfterGeneticOp();
-        	
+
             
-            System.out.println("BEST INIT AFTER GO : "+ basePopulation.getBestChromosome().getClique());
-            System.out.println("BEST INIT: "+ basePopulation.getBestChromosome().getFitnes());
-            System.out.println("AVG INIT: "+ basePopulation.getAvgFitness());
-            
-           
+            stats = new Statistic(basePopulation);
+            stats.printInitPopulationData();
             //savePopulationToFile(basePopulation,config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
             
             
             for(int i=0;i<20;i++){
             	startIterationTimer=System.currentTimeMillis();
-            	System.out.println(i+ " ITERATION");
-   	            /*-------Reproduction Crossover------*/
+            	  /*-------Reproduction Crossover------*/
    	            startTimer=System.currentTimeMillis();
    	            reproduction();
    	            stopTimer=System.currentTimeMillis();
@@ -143,17 +141,16 @@ public class EvolutionaryAlgorithm {
    	            stopTimer=System.currentTimeMillis();
    	            time=stopTimer-startTimer;
    	            //System.out.println("Local Optimization after genetic operands  time----->: "+ time + " MS");
-	           System.out.println(i +". BEST BASE: "+ basePopulation.getBestChromosome().getFitnes());
-   	           System.out.println(i +". BEST: "+ basePopulation.getBestChromosome().getClique());
-   	           System.out.println(i +". AVG BASE: "+ basePopulation.getAvgFitness());
-   	           System.out.println(i +". BEST TEMP: "+ tempPopulation.getBestChromosome().getFitnes());
-   	           System.out.println(i +". BEST: "+ tempPopulation.getBestChromosome().getClique());
-   	           System.out.println(i +". AVG TEMP: "+ tempPopulation.getAvgFitness());
-   	           prepareNextPopulation();
    	           
+   	          
+   	           
+   	           prepareNextPopulation();
    	           stopTimer=System.currentTimeMillis();
    	           time=stopTimer-startIterationTimer;
    	           System.out.println("IT TIME:  "+ time + " ms");
+   	           
+   	           stats.insertData(basePopulation, tempPopulation);
+   	           stats.printIterationData(i);
             }
 	    }catch(CloneNotSupportedException ex){
 	        ex.printStackTrace();
@@ -221,9 +218,7 @@ public class EvolutionaryAlgorithm {
             Chromosom randChromosom = (Chromosom) basePopulation.getChromosom(randInt).clone();
             basePopulation.addChromosom(randChromosom);
         }
-        
-       // System.out.println("BEST "+ bestChromosom.getFitnes());
-       // System.out.println("AVG: "+basePopulation.getAvgFitness());
+
         
 	}
 	

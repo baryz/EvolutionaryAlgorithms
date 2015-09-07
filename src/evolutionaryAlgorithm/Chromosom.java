@@ -116,11 +116,11 @@ public class Chromosom {
 	    }
 	    
 	    public String getClique(){
-	    	String result="";
+	    	StringBuilder result= new StringBuilder();
 	    	for(Gen x:gens){
-	    		if(x.getValue()==true) result+= x.getLabel()+", ";
+	    		if(x.getValue()==true) result.append( x.getLabel()+", ");
 	    	}
-	    	return result;
+	    	return result.toString();
 	    }
 	    
 	    @Override
