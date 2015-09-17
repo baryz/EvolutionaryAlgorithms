@@ -2,8 +2,7 @@ package evolutionaryAlgorithm;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+
 
 public class Statistic {
 
@@ -29,7 +28,8 @@ public class Statistic {
 		resultTempPopulation = new ArrayList<>();
 		bestCliqueTempPopulation = new ArrayList<>();
 		
-		noOfPopulation=0;
+		insertData(initPop, initPop);
+		noOfPopulation++;
 	
 		
 	}
@@ -71,13 +71,11 @@ public class Statistic {
 	public void printIterationData(int index){
 		
 		System.out.println("ITERATION " + index);
-		System.out.println("BEST BASE RESULT : " + bestCliqueBasePopulation.get(index));
-        System.out.println("BEST BASE FITNES : " + getMaxFitnesBase(index));
+		System.out.println("BEST BASE RESULT : " + getMaxFitnesBase(index));
+       
         System.out.println("AVG BASE: " + getAvgBasePopulation(index));
-		
-        System.out.println("ITERATION " + index);
-		System.out.println("TEMP BASE RESULT : " + bestCliqueTempPopulation.get(index));
-        System.out.println("TEMP BASE FITNES : " + getMaxFitnesTemp(index));
+		System.out.println("BEST TEMP RESULT : " + getMaxFitnesTemp(index));
+
         System.out.println("AVG TEMP: " + getAvgTempPopulation(index));
 	}
 	
@@ -87,6 +85,32 @@ public class Statistic {
 	
 	public double getAvgTempPopulation(int indexPop){
 		return getAvgTable( resultTempPopulation.get(indexPop) );
+	}
+	
+	public double[] getAvgBasePopulationList(){
+		
+		double[] result = new double[resultBasePopulation.size()];
+		for(int i=0; i < resultBasePopulation.size(); i++){
+			result[i]= getAvgBasePopulation(i);
+		}
+		return result;
+	}
+	
+	public int[] getBestChromBaseList(){
+		int[] result = new int[resultBasePopulation.size()];
+		for(int i=0; i< resultBasePopulation.size(); i++){
+			result[i] = getMax(resultBasePopulation.get(i));
+		}
+		return result;
+	}
+	
+	public double[] getAvgTempPopulationList(){
+		
+		double[] result = new double[resultTempPopulation.size()];
+		for(int i=0; i < resultTempPopulation.size(); i++){
+			result[i]= getAvgTempPopulation(i);
+		}
+		return result;
 	}
 	
 	private int[] getResultTable(Population inPop){
@@ -109,4 +133,5 @@ public class Statistic {
 	private int getMax( int[] inData){
 		return Arrays.stream(inData).max().getAsInt();
 	}
+	
 }

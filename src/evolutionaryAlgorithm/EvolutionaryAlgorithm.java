@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
+import org.jfree.ui.RefineryUtilities;
+
+import chart.LineChart;
 import config.Config;
 import distribution.RandomWithoutDuplicate;
 import evolutionaryAlgorithm.crossover.*;
@@ -34,6 +37,7 @@ public class EvolutionaryAlgorithm {
     
     private static final int size_of_elite = 2;
     private static final double part_replacement_factor=0.7;
+    private  final int sizePopulation;
 	private Graph graph;
 	private Population basePopulation;
 	private Population tempPopulation;
@@ -49,10 +53,13 @@ public class EvolutionaryAlgorithm {
 	
 	
 	
-	public EvolutionaryAlgorithm(Graph inGraph,ReproductionType reproType,CrossoverType crossType,int noOfCut,SuccessionType succesType,Config conf){
+	public EvolutionaryAlgorithm(Graph inGraph,int sizeOfPopulation,
+			ReproductionType reproType,CrossoverType crossType,
+			int noOfCut,SuccessionType succesType,Config conf){
         graph=inGraph;
-        basePopulation=new Population(graph.getNoVertex());
-        tempPopulation=new Population(graph.getNoVertex());
+        sizePopulation = sizeOfPopulation;
+        basePopulation=new Population(sizePopulation);
+        tempPopulation=new Population(sizePopulation);
       
         
         bestChromosom= new Chromosom(graph.getNoVertex());
@@ -84,7 +91,7 @@ public class EvolutionaryAlgorithm {
         
         /*-----------Init----------*/
         startTimer=System.currentTimeMillis();
-        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,ReproductionType.ROULLETEWHEEL,
+        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,100,ReproductionType.ROULLETEWHEEL,
         						CrossoverType.MULTI_POINT,5,
         						SuccessionType.HAMMING_REPLACEMENT,
         						conf);
@@ -99,7 +106,7 @@ public class EvolutionaryAlgorithm {
         time=stopTimer-overallStartTimer;
         System.out.println("Overall  time---------> "+ time + " MS");
      
-        
+
 
 	}
 	
@@ -110,12 +117,14 @@ public class EvolutionaryAlgorithm {
    
         try{
         	 /*-----------Create Init Population----------*/
-        	loadPopulationWithFile(config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
-        	//createInitPopulationAfterGeneticOp();
+        	//loadPopulationWithFile(config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
+        	createInitPopulationAfterGeneticOp();
 
             
-            stats = new Statistic(basePopulation);
+            stats = new Statistic( basePopulation );
             stats.printInitPopulationData();
+            
+            /*-----------SAVE TO FILE Init Population----------*/
             //savePopulationToFile(basePopulation,config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
             
             
@@ -176,7 +185,7 @@ public class EvolutionaryAlgorithm {
         
 		Chromosom xChromosom =null;
         Random  randomVertexGen= new Random();
-        for(int j=0;j<graph.getNoVertex();j++){
+        for(int j=0;j<sizePopulation;j++){
             int randomVi=randomVertexGen.nextInt((graph.getNoVertex()-1));
             ArrayList<Integer> setA= new ArrayList<>();
             setA.add(randomVi);
@@ -293,29 +302,9 @@ public class EvolutionaryAlgorithm {
 	        //subGraph.setTest();
 	        //subGraph.loadChromosom(inputChrom);
 	        for(int i=0;i<basePopulation.getSizePopulation();i++){
-	            //population.getChromosom(i).print();
-	            //System.out.println("Ocena: "+ basePopulation.getChromosom(i).getFitnes());
+
 	            subGraph= (Graph)graph.clone();
-	            //Chromosom test = new Chromosom("1111101010111010");
-	            //Chromosom test1 = new Chromosom("0000001100100000");
-	            //subGraph.setTest();
-	            //subGraph.printEdge();
-	            
 	            subGraph.loadChromosom(basePopulation.getChromosom(i));
-	            //subGraph.printDegreeVertex();
-	            //System.out.println("IsClique:"+subGraph.isClique());
-	            //System.out.println("Po zal chromosomu!");
-	            //subGraph.printEdge();
-	            
-	           /*System.out.println("Chromosom przed ekstrakcj¹:");
-	            System.out.println("Ocena: " +basePopulation.getChromosom(i).getFitnes());
-	            */
-	           //population.getChromosom(i).print();
-	           //subGraph.printDegreeVertex();
-	            //subGraph.printEdge();
-	            //System.out.println("Jest Klik¹: "+ subGraph.isClique());
-	            
-	            
 	            subGraph.extractionClique();
 	            
 	            
@@ -327,24 +316,11 @@ public class EvolutionaryAlgorithm {
 	              
 	            }
 	            basePopulation.getChromosom(i).update(booleanArrayVertex);
+
 	            
-	            /*
-	            System.out.println("Po ekstrakcji !!!");
-	            System.out.println("Ocena: " +basePopulation.getChromosom(i).getFitnes());
-	            */
-	            //population.getChromosom(i).print();
-	            //subGraph.printDegreeVertex();
-	            
-	                // <--------------RESEARCH MAX CLIQUE WITOUT IMPROVEMENT CLIQUE--------------->
+	            // <--------------RESEARCH MAX CLIQUE WITOUT IMPROVEMENT CLIQUE--------------->
 	            subGraph.improvementClique(graph,basePopulation.getChromosom(i));
-	            /*
-	            System.out.println("Po Rozszerzeniu!!!");
-	            System.out.println("Ocena: " +basePopulation.getChromosom(i).getFitnes());
-	            */
-	            //population.getChromosom(i).print();
-	            //subGraph.printDegreeVertex();
-	            //subGraph.printEdge();
-	            //System.out.println("Jest Klik¹: "+ subGraph.isClique());
+
 	            
 	        }
 	    }
@@ -362,12 +338,7 @@ public class EvolutionaryAlgorithm {
 	            
 	            
 	            boolean[] booleanArrayVertex=subGraph.getBoolArrayVertex();
-	            /*
-	            boolean[] check = new boolean[booleanArrayVertex.length];
-	            if(Arrays.equals(booleanArrayVertex, check)){
-	                System.out.println("ERROR !!!!!!!!!!");
-	                
-	            } */
+
 	            tempPopulation.getChromosom(i).update(booleanArrayVertex);
 	            
 	            subGraph.improvementClique(graph,tempPopulation.getChromosom(i));
@@ -382,8 +353,7 @@ public class EvolutionaryAlgorithm {
 	        pairForCrossing.clear();
 	        tempPopulation.clear();
 	        pairForCrossing=reproduction.getPairForCrossing(basePopulation);
-	        //repro.check();
-	        //pairForCrossing=repro.rank(this.basePopulation);
+
 	        
 	      int[][] tableOfPointsCrossing =getRandomCrossingPoint();
 	         for(int i=0; i<tableOfPointsCrossing.length;i++){
@@ -420,6 +390,11 @@ public class EvolutionaryAlgorithm {
 		    	}
 	    	}
 	    	
+	    }
+	    
+	    public Statistic getStatistic(){
+	    	
+	    	return stats;
 	    }
 	    
 	    private void partReplacementSuccesion() {
@@ -568,7 +543,8 @@ public class EvolutionaryAlgorithm {
 	    		BufferedWriter writer = Files.newBufferedWriter(newFile, Charset.defaultCharset());
 	    		writer.append("s initial_select_prob="+this.initial_select_prob +" initial_mutate_prob=" + this.initial_mutate_prob);
 	    		writer.newLine();
-	    		writer.append("s AVG FITNESS: " +pop.getAvgFitness() + "  BEST FITNESS: " + pop.getBestChromosome().getFitnes());
+	    		writer.append("s AVG FITNESS: " +pop.getAvgFitness() + "  BEST FITNESS: " + pop.getBestChromosome().getFitnes()+ 
+	    						" SIZE POP: "+ pop.getSizePopulation());
 	    		writer.newLine();
 	    		
 	    		for(Chromosom x:pop){
