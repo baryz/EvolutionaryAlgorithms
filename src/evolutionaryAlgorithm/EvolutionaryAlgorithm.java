@@ -23,6 +23,12 @@ import evolutionaryAlgorithm.crossover.*;
 import evolutionaryAlgorithm.reproduction.Reproduction;
 import evolutionaryAlgorithm.reproduction.ReproductionFactory;
 import evolutionaryAlgorithm.reproduction.ReproductionType;
+import evolutionaryAlgorithm.stopCondition.MinResultCondition;
+import evolutionaryAlgorithm.stopCondition.NoIterateCondition;
+import evolutionaryAlgorithm.stopCondition.StagnacyCondition;
+import evolutionaryAlgorithm.stopCondition.StopCondition;
+import evolutionaryAlgorithm.stopCondition.StopConditionFactory;
+import evolutionaryAlgorithm.stopCondition.StopConditionType;
 import evolutionaryAlgorithm.succession.SuccessionType;
 import graph.Graph;
 
@@ -32,11 +38,11 @@ public class EvolutionaryAlgorithm {
 	private Chromosom bestChromosom;
     private final double initial_select_prob=0.4;
     private final double initial_mutate_prob=0.7;
-    private static final double offspring_selection_prob=0.2;
-    private static final double offspring_mutate_prob=0.5;
+    private static final double offspring_selection_prob=0.4;
+    private static final double offspring_mutate_prob=0.6;
     
     private static final int size_of_elite = 2;
-    private static final double part_replacement_factor=0.7;
+    private static final double part_replacement_factor=0.5;
     private  final int sizePopulation;
 	private Graph graph;
 	private Population basePopulation;
@@ -45,6 +51,9 @@ public class EvolutionaryAlgorithm {
 	private Crossover crossover;
 	private Reproduction reproduction;
 	private SuccessionType successionType;
+	
+	
+	private StopCondition stopCondition;
 	
 	private Statistic stats;
 	private final Config config;
@@ -55,7 +64,9 @@ public class EvolutionaryAlgorithm {
 	
 	public EvolutionaryAlgorithm(Graph inGraph,int sizeOfPopulation,
 			ReproductionType reproType,CrossoverType crossType,
-			int noOfCut,SuccessionType succesType,Config conf){
+			int noOfCut,SuccessionType succesType,
+			StopConditionType stopCondType, int parStopCondition,
+			Config conf){
         graph=inGraph;
         sizePopulation = sizeOfPopulation;
         basePopulation=new Population(sizePopulation);
@@ -70,6 +81,12 @@ public class EvolutionaryAlgorithm {
 	    successionType=succesType;
 	    ReproductionFactory reproductionFactory= new ReproductionFactory();
 	    reproduction=reproductionFactory.produceReproduction(reproType);
+	    
+	   
+	    StopConditionFactory stopCondFactory= new StopConditionFactory();
+	    stopCondition = stopCondFactory.produceStopCondition(stopCondType, parStopCondition);
+	    
+	    
 	    config=conf;
 	    
 	    
@@ -92,8 +109,9 @@ public class EvolutionaryAlgorithm {
         /*-----------Init----------*/
         startTimer=System.currentTimeMillis();
         EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,100,ReproductionType.ROULLETEWHEEL,
-        						CrossoverType.MULTI_POINT,5,
+        						CrossoverType.MULTI_POINT,20,
         						SuccessionType.HAMMING_REPLACEMENT,
+        						StopConditionType.NO_ITERATE, 10,
         						conf);
         stopTimer=System.currentTimeMillis();
         
@@ -127,8 +145,14 @@ public class EvolutionaryAlgorithm {
             /*-----------SAVE TO FILE Init Population----------*/
             //savePopulationToFile(basePopulation,config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
             
+            int i=0;
             
-            for(int i=0;i<20;i++){
+            
+            prepareStopConditionPar();
+            while(stopCondition.isContinue()){
+	           	
+	           	System.out.println("----------------START IT-------------------------");
+
             	startIterationTimer=System.currentTimeMillis();
             	  /*-------Reproduction Crossover------*/
    	            startTimer=System.currentTimeMillis();
@@ -151,15 +175,16 @@ public class EvolutionaryAlgorithm {
    	            time=stopTimer-startTimer;
    	            //System.out.println("Local Optimization after genetic operands  time----->: "+ time + " MS");
    	           
-   	          
-   	           
    	           prepareNextPopulation();
-   	           stopTimer=System.currentTimeMillis();
-   	           time=stopTimer-startIterationTimer;
-   	           System.out.println("IT TIME:  "+ time + " ms");
-   	           
+   	          
    	           stats.insertData(basePopulation, tempPopulation);
-   	           stats.printIterationData(i);
+   	           stats.printIterationData(i+1);
+   	           updateBestGlobalChromosome();
+   	           System.out.println("IRERATION "+i + "  GLOBAL BEST : " + bestChromosom.getFitnes());
+   	           System.out.println("STATS: "+ Arrays.toString(stats.getBestChromBaseList()));
+   	           System.out.println("--------------------END IT--------------------------");
+   	           prepareStopConditionPar();
+   	           i++;
             }
 	    }catch(CloneNotSupportedException ex){
 	        ex.printStackTrace();
@@ -292,15 +317,9 @@ public class EvolutionaryAlgorithm {
 	 
 	    public void localOptimization() throws CloneNotSupportedException{
 	        
-	         //inputChrom.print();
-	        //graph.printEdge();
+	       
 	        Graph subGraph = null;
-	        //subGraph.printEdge();
-	         //subGraph.printDegreeVertex();
-	        //Chromosom test=new Chromosom("0000100111001100");
-	       // Chromosom test1=new Chromosom("0110010010011011");
-	        //subGraph.setTest();
-	        //subGraph.loadChromosom(inputChrom);
+	        
 	        for(int i=0;i<basePopulation.getSizePopulation();i++){
 
 	            subGraph= (Graph)graph.clone();
@@ -331,20 +350,12 @@ public class EvolutionaryAlgorithm {
 	        Graph subGraph = null;
 	      
 	        for(int i=0;i<tempPopulation.getSizePopulation();i++){
-	           
 	            subGraph= (Graph)graph.clone();
 	            subGraph.loadChromosom(tempPopulation.getChromosom(i));
 	            subGraph.extractionClique();
-	            
-	            
 	            boolean[] booleanArrayVertex=subGraph.getBoolArrayVertex();
-
 	            tempPopulation.getChromosom(i).update(booleanArrayVertex);
-	            
 	            subGraph.improvementClique(graph,tempPopulation.getChromosom(i));
-	       
-
-	            
 	        }
 	    }
 	    
@@ -577,6 +588,42 @@ public class EvolutionaryAlgorithm {
 	    	}catch(IOException ex){
 	    		System.out.println("Error loading file");
 	    	}
+	    }
+	    
+	    
+	    private void updateBestGlobalChromosome() throws CloneNotSupportedException{
+	    	
+	    	int bestChromFitInCurrentBasePop = basePopulation.getBestChromosome().getFitnes();
+	    	int bestGlobalChromFitInCurrentBasePop = bestChromosom.getFitnes();
+	    	if( bestChromFitInCurrentBasePop > bestGlobalChromFitInCurrentBasePop){
+	    		bestChromosom = (Chromosom) basePopulation.getBestChromosome().clone();
+	    	}
+	    	
+	    }
+	    private void prepareStopConditionPar(){
+	    	
+	    	switch(stopCondition.getType()){
+	    		case STAGNACY_CONDITION:{
+	    			 StagnacyCondition cond = (StagnacyCondition)stopCondition;
+	    			 cond.setParameter(bestChromosom.getFitnes(), stats);
+	    			 break;
+	    		}
+				case NO_ITERATE:{
+					NoIterateCondition cond = (NoIterateCondition)stopCondition;
+		   			 cond.setParameter(stats);
+					break;
+				}
+				case MIN_RESULT:{
+					MinResultCondition cond = (MinResultCondition)stopCondition;
+		   			cond.setParameter(bestChromosom.getFitnes());
+					break;
+				}
+					
+
+				
+
+	    	}
+	    	
 	    }
 	    
 	    

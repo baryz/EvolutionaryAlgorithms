@@ -7,13 +7,14 @@ import config.Config;
 import evolutionaryAlgorithm.EvolutionaryAlgorithm;
 import evolutionaryAlgorithm.crossover.CrossoverType;
 import evolutionaryAlgorithm.reproduction.ReproductionType;
+import evolutionaryAlgorithm.stopCondition.StopConditionType;
 import evolutionaryAlgorithm.succession.SuccessionType;
 import graph.Graph;
 
 public class Main {
 
 	public static void main(String[] args) {
-		String graphName="keller6";
+		String graphName="keller5";
 		Config conf= new Config();
 		
 		 long overallStartTimer,startTimer, stopTimer,time;
@@ -27,10 +28,11 @@ public class Main {
         
         /*-----------Init----------*/
         startTimer=System.currentTimeMillis();
-        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,100,
-        						ReproductionType.RANK,
+        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,50,
+        						ReproductionType.ROULLETEWHEEL,
         						CrossoverType.MULTI_POINT,20,
         						SuccessionType.HAMMING_REPLACEMENT,
+        						StopConditionType.MIN_RESULT, 26,
         						conf);
         stopTimer=System.currentTimeMillis();
         
@@ -48,9 +50,6 @@ public class Main {
         RefineryUtilities.centerFrameOnScreen(avgFit);
         avgFit.setVisible(true);
         
-        for(int i = 0; i < 20; i++){
-        	//alg.getStatistic().printIterationData(i);
-        }
         
 	}
 

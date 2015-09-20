@@ -8,6 +8,7 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
@@ -45,10 +46,10 @@ public class LineChart extends ApplicationFrame {
         	series1.add(i,avgBasePopList[i]);
         }
     	
-        double[] tempBasePopList = inDataset.getAvgTempPopulationList();
+        double[] avgTempPopList = inDataset.getAvgTempPopulationList();
         XYSeries series2 = new XYSeries("AVG TEMP FITNES");
-        for(int i=0; i<tempBasePopList.length; i++){
-        	series2.add(i,tempBasePopList[i]);
+        for(int i=0; i<avgTempPopList.length; i++){
+        	series2.add(i,avgTempPopList[i]);
         }
         
         int[] bestChromBasePopList = inDataset.getBestChromBaseList();
@@ -91,6 +92,15 @@ public class LineChart extends ApplicationFrame {
 	        plot.setDomainGridlinePaint(Color.white);
 	        plot.setRangeGridlinePaint(Color.white);
 	        
+	        double minYaxisValue = dataset.getYValue(0,0)- 1;
+	      
+	        
+	        ValueAxis yAxis = plot.getRangeAxis();
+	        
+	       yAxis.setRange(minYaxisValue,  yAxis.getUpperBound());
+	       
+	      
+	        
 	        final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
 	        renderer.setSeriesLinesVisible(0, false);
 	        renderer.setSeriesShapesVisible(1, false);
@@ -99,7 +109,7 @@ public class LineChart extends ApplicationFrame {
 	        // change the auto tick unit selection to integer units only...
 	        final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
 	        rangeAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits());
-	        // OPTIONAL CUSTOMISATION COMPLETED.
+	       
 	                
 	        return chart;
 	 }

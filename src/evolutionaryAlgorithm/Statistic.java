@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 public class Statistic {
 
+	
 	private int[] resultInitPopulation;
 	private String bestInitClique;
 	
@@ -14,7 +15,7 @@ public class Statistic {
 	
 	private ArrayList<int[]> resultTempPopulation;
 	private ArrayList<String> bestCliqueTempPopulation;
-	int noOfPopulation;
+	private int noOfPopulation;
 	//private int[] algorithmParameter; 
 	
 	public Statistic( Population initPop){
@@ -29,7 +30,7 @@ public class Statistic {
 		bestCliqueTempPopulation = new ArrayList<>();
 		
 		insertData(initPop, initPop);
-		noOfPopulation++;
+		
 	
 		
 	}
@@ -70,7 +71,7 @@ public class Statistic {
 	
 	public void printIterationData(int index){
 		
-		System.out.println("ITERATION " + index);
+		//System.out.println("ITERATION " + index);
 		System.out.println("BEST BASE RESULT : " + getMaxFitnesBase(index));
        
         System.out.println("AVG BASE: " + getAvgBasePopulation(index));
@@ -111,6 +112,10 @@ public class Statistic {
 			result[i]= getAvgTempPopulation(i);
 		}
 		return result;
+	}
+	
+	public int getNoOfPopulation(){
+		return noOfPopulation;
 	}
 	
 	private int[] getResultTable(Population inPop){

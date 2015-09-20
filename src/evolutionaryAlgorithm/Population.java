@@ -46,6 +46,7 @@ public class Population implements Iterable<Chromosom> {
      
      public Chromosom getBestChromosome(){
     	 int bestFitness=0;
+    	 
     	 Chromosom result = new Chromosom(chromosome.get(0).getSize());
     	 for(Chromosom x:chromosome){
     		 if( x.getFitnes()>bestFitness){
@@ -88,12 +89,7 @@ public class Population implements Iterable<Chromosom> {
         
     }
     
-    @Override
-    protected void finalize() throws Throwable {
-        System.out.println("DEMAGE Population!!!! ID: "+ this.id);
-      
-        super.finalize();
-    }
+
 
 	@Override
 	public Iterator<Chromosom> iterator() {
