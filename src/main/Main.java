@@ -14,7 +14,7 @@ import graph.Graph;
 public class Main {
 
 	public static void main(String[] args) {
-		String graphName="keller5";
+		String graphName="DSJC1000-5";
 		Config conf= new Config();
 		
 		 long overallStartTimer,startTimer, stopTimer,time;
@@ -29,11 +29,11 @@ public class Main {
         /*-----------Init----------*/
         startTimer=System.currentTimeMillis();
         EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,50,
-        						ReproductionType.ROULLETEWHEEL,
-        						CrossoverType.MULTI_POINT,20,
+        						ReproductionType.RANK,
+        						CrossoverType.MULTI_POINT,10,
         						SuccessionType.HAMMING_REPLACEMENT,
-        						StopConditionType.MIN_RESULT, 26,
-        						conf);
+        						StopConditionType.STAGNACY_CONDITION, 50,
+        						conf );
         stopTimer=System.currentTimeMillis();
         
         time=stopTimer-startTimer;

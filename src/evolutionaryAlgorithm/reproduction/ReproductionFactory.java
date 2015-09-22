@@ -5,7 +5,7 @@ package evolutionaryAlgorithm.reproduction;
 public class ReproductionFactory implements IReproductionFactory {
 
 	@Override
-	public Reproduction produceReproduction(ReproductionType type){
+	public Reproduction produceReproduction(ReproductionType type, int... quantityTournament){
 		Reproduction resultReproduction=null;
 		
 		switch(type){
@@ -14,7 +14,7 @@ public class ReproductionFactory implements IReproductionFactory {
 				break;
 			}
 			case TOURNAMENT:{
-				resultReproduction = new TournamentReproduction();
+				resultReproduction = new TournamentReproduction(quantityTournament);
 				break;
 			}
 			case ROULLETEWHEEL:{

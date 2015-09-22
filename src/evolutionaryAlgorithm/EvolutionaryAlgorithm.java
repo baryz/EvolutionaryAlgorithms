@@ -1,7 +1,5 @@
 package evolutionaryAlgorithm;
 
-
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -14,22 +12,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.jfree.ui.RefineryUtilities;
-
-import chart.LineChart;
 import config.Config;
 import distribution.RandomWithoutDuplicate;
 import evolutionaryAlgorithm.crossover.*;
-import evolutionaryAlgorithm.reproduction.Reproduction;
-import evolutionaryAlgorithm.reproduction.ReproductionFactory;
-import evolutionaryAlgorithm.reproduction.ReproductionType;
-import evolutionaryAlgorithm.stopCondition.MinResultCondition;
-import evolutionaryAlgorithm.stopCondition.NoIterateCondition;
-import evolutionaryAlgorithm.stopCondition.StagnacyCondition;
-import evolutionaryAlgorithm.stopCondition.StopCondition;
-import evolutionaryAlgorithm.stopCondition.StopConditionFactory;
-import evolutionaryAlgorithm.stopCondition.StopConditionType;
-import evolutionaryAlgorithm.succession.SuccessionType;
+import evolutionaryAlgorithm.reproduction.*;
+import evolutionaryAlgorithm.stopCondition.*;
+import evolutionaryAlgorithm.succession.*;
 import graph.Graph;
 
 public class EvolutionaryAlgorithm {
@@ -38,9 +26,13 @@ public class EvolutionaryAlgorithm {
 	private Chromosom bestChromosom;
     private final double initial_select_prob=0.4;
     private final double initial_mutate_prob=0.7;
-    private static final double offspring_selection_prob=0.4;
-    private static final double offspring_mutate_prob=0.6;
-    
+    private double offspring_selection_prob=0.5;
+    private final double step_offspring_selection_prob = 0.4;
+    private double offspring_mutate_prob=0.6;
+    private final double step_offspring_mutate_prob = 0.05;
+    private final int change_step_for_genetic_operator = 5;
+    private int noOfCutting;
+    private final int step_reduce_no_of_cutting = 2;
     private static final int size_of_elite = 2;
     private static final double part_replacement_factor=0.5;
     private  final int sizePopulation;
@@ -55,6 +47,7 @@ public class EvolutionaryAlgorithm {
 	
 	private StopCondition stopCondition;
 	
+	
 	private Statistic stats;
 	private final Config config;
 	
@@ -66,31 +59,33 @@ public class EvolutionaryAlgorithm {
 			ReproductionType reproType,CrossoverType crossType,
 			int noOfCut,SuccessionType succesType,
 			StopConditionType stopCondType, int parStopCondition,
-			Config conf){
+			Config conf,
+			int... quantityOfTour){
         graph=inGraph;
         sizePopulation = sizeOfPopulation;
         basePopulation=new Population(sizePopulation);
         tempPopulation=new Population(sizePopulation);
       
-        
         bestChromosom= new Chromosom(graph.getNoVertex());
         pairForCrossing= new ArrayList<>();
         CrossoverFactory factory = new CrossoverFactory();
 	    crossover=factory.produceCrossover(crossType);
-	    crossover.setNoOfCut(noOfCut);
+	    noOfCutting = noOfCut;
+	    crossover.setNoOfCut(noOfCutting);
 	    successionType=succesType;
 	    ReproductionFactory reproductionFactory= new ReproductionFactory();
-	    reproduction=reproductionFactory.produceReproduction(reproType);
 	    
-	   
+	    if(quantityOfTour.length > 0){
+	    	reproduction=reproductionFactory.produceReproduction(reproType, quantityOfTour[0]);
+	    }else{
+	    	reproduction=reproductionFactory.produceReproduction(reproType);
+	    }
+	    
 	    StopConditionFactory stopCondFactory= new StopConditionFactory();
 	    stopCondition = stopCondFactory.produceStopCondition(stopCondType, parStopCondition);
 	    
-	    
 	    config=conf;
-	    
-	    
-     }
+	 }
 	
 	public static void main(String [] args){
 		
@@ -111,7 +106,7 @@ public class EvolutionaryAlgorithm {
         EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,100,ReproductionType.ROULLETEWHEEL,
         						CrossoverType.MULTI_POINT,20,
         						SuccessionType.HAMMING_REPLACEMENT,
-        						StopConditionType.NO_ITERATE, 10,
+        						StopConditionType.STAGNACY_CONDITION, 20,
         						conf);
         stopTimer=System.currentTimeMillis();
         
@@ -132,25 +127,17 @@ public class EvolutionaryAlgorithm {
 		
 		long startTimer, stopTimer,time,startIterationTimer;
        
-   
-        try{
+		try{
         	 /*-----------Create Init Population----------*/
         	//loadPopulationWithFile(config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
         	createInitPopulationAfterGeneticOp();
-
-            
-            stats = new Statistic( basePopulation );
+        	stats = new Statistic( basePopulation );
             stats.printInitPopulationData();
-            
-            /*-----------SAVE TO FILE Init Population----------*/
+             /*-----------SAVE TO FILE Init Population----------*/
             //savePopulationToFile(basePopulation,config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
-            
             int i=0;
-            
-            
             prepareStopConditionPar();
             while(stopCondition.isContinue()){
-	           	
 	           	System.out.println("----------------START IT-------------------------");
 
             	startIterationTimer=System.currentTimeMillis();
@@ -176,7 +163,7 @@ public class EvolutionaryAlgorithm {
    	            //System.out.println("Local Optimization after genetic operands  time----->: "+ time + " MS");
    	           
    	           prepareNextPopulation();
-   	          
+   	           
    	           stats.insertData(basePopulation, tempPopulation);
    	           stats.printIterationData(i+1);
    	           updateBestGlobalChromosome();
@@ -184,6 +171,7 @@ public class EvolutionaryAlgorithm {
    	           System.out.println("STATS: "+ Arrays.toString(stats.getBestChromBaseList()));
    	           System.out.println("--------------------END IT--------------------------");
    	           prepareStopConditionPar();
+   	           prepareParameterOfGeneticOperation(i);
    	           i++;
             }
 	    }catch(CloneNotSupportedException ex){
@@ -214,8 +202,6 @@ public class EvolutionaryAlgorithm {
             int randomVi=randomVertexGen.nextInt((graph.getNoVertex()-1));
             ArrayList<Integer> setA= new ArrayList<>();
             setA.add(randomVi);
-             //System.out.println("Size:"+graph.getNoVertex());
-            //System.out.println("Wylosowa³em Vi= "+randomVi);
             ArrayList<Integer> adjacencyList = graph.getAdjacencyArrayList(randomVi);
 
             int randomIndexVj=0;
@@ -316,18 +302,14 @@ public class EvolutionaryAlgorithm {
 	 }
 	 
 	    public void localOptimization() throws CloneNotSupportedException{
-	        
-	       
 	        Graph subGraph = null;
 	        
 	        for(int i=0;i<basePopulation.getSizePopulation();i++){
-
-	            subGraph= (Graph)graph.clone();
+	        	subGraph= (Graph)graph.clone();
 	            subGraph.loadChromosom(basePopulation.getChromosom(i));
 	            subGraph.extractionClique();
 	            
-	            
-	            boolean[] booleanArrayVertex=subGraph.getBoolArrayVertex();
+	             boolean[] booleanArrayVertex=subGraph.getBoolArrayVertex();
 	            boolean[] check = new boolean[booleanArrayVertex.length];
 	            if(Arrays.equals(booleanArrayVertex, check)){
 	            	
@@ -335,18 +317,12 @@ public class EvolutionaryAlgorithm {
 	              
 	            }
 	            basePopulation.getChromosom(i).update(booleanArrayVertex);
-
-	            
 	            // <--------------RESEARCH MAX CLIQUE WITOUT IMPROVEMENT CLIQUE--------------->
 	            subGraph.improvementClique(graph,basePopulation.getChromosom(i));
-
-	            
 	        }
 	    }
 	    
 	    public void localOptimizationAfterGeneticOperation() throws CloneNotSupportedException{
-	        
-	      
 	        Graph subGraph = null;
 	      
 	        for(int i=0;i<tempPopulation.getSizePopulation();i++){
@@ -364,7 +340,7 @@ public class EvolutionaryAlgorithm {
 	        pairForCrossing.clear();
 	        tempPopulation.clear();
 	        pairForCrossing=reproduction.getPairForCrossing(basePopulation);
-
+	        
 	        
 	      int[][] tableOfPointsCrossing =getRandomCrossingPoint();
 	         for(int i=0; i<tableOfPointsCrossing.length;i++){
@@ -600,8 +576,8 @@ public class EvolutionaryAlgorithm {
 	    	}
 	    	
 	    }
+	    
 	    private void prepareStopConditionPar(){
-	    	
 	    	switch(stopCondition.getType()){
 	    		case STAGNACY_CONDITION:{
 	    			 StagnacyCondition cond = (StagnacyCondition)stopCondition;
@@ -618,10 +594,25 @@ public class EvolutionaryAlgorithm {
 		   			cond.setParameter(bestChromosom.getFitnes());
 					break;
 				}
-					
-
-				
-
+			}
+	    	
+	    }
+	    
+	    private void  prepareParameterOfGeneticOperation(int noOfGenetarion){
+	    	
+	    	if(noOfGenetarion != 0 && 
+	    	   noOfGenetarion % change_step_for_genetic_operator == 0){
+	    		if( ! (offspring_selection_prob <= step_offspring_selection_prob) )
+	    			offspring_selection_prob = offspring_selection_prob - step_offspring_selection_prob ;
+	    		if( ! (offspring_mutate_prob <= step_offspring_mutate_prob ))
+	    			offspring_mutate_prob = offspring_mutate_prob - step_offspring_selection_prob;
+	    		if( ! (noOfCutting <= step_reduce_no_of_cutting))
+	    			noOfCutting -= step_reduce_no_of_cutting; 
+	    		
+	    		crossover.setNoOfCut(noOfCutting);
+	    		System.out.println("LICZBA CIEC: " + crossover.getNoOfCut() + "offspring_selection_prob: " + offspring_selection_prob + 
+	    				" offspring_mutate_prob: "+ offspring_mutate_prob);
+	    		
 	    	}
 	    	
 	    }

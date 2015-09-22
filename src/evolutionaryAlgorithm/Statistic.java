@@ -74,10 +74,10 @@ public class Statistic {
 		//System.out.println("ITERATION " + index);
 		System.out.println("BEST BASE RESULT : " + getMaxFitnesBase(index));
        
-        System.out.println("AVG BASE: " + getAvgBasePopulation(index));
+        System.out.println("AVG BASE: " + getAvgBasePopulation(index) + " BASE :" + Arrays.toString(resultBasePopulation.get(index)));
 		System.out.println("BEST TEMP RESULT : " + getMaxFitnesTemp(index));
 
-        System.out.println("AVG TEMP: " + getAvgTempPopulation(index));
+        System.out.println("AVG TEMP: " + getAvgTempPopulation(index) + " TEMP :" + Arrays.toString(resultTempPopulation.get(index)));
 	}
 	
 	public double getAvgBasePopulation(int indexPop){
