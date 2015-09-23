@@ -27,14 +27,14 @@ public class EvolutionaryAlgorithm {
     private final double initial_select_prob=0.4;
     private final double initial_mutate_prob=0.7;
     private double offspring_selection_prob=0.5;
-    private final double step_offspring_selection_prob = 0.4;
-    private double offspring_mutate_prob=0.6;
+    private final double step_offspring_selection_prob = 0.05;
+    private double offspring_mutate_prob=0.4;
     private final double step_offspring_mutate_prob = 0.05;
-    private final int change_step_for_genetic_operator = 5;
+    private final int change_step_for_genetic_operator = 10;
     private int noOfCutting;
     private final int step_reduce_no_of_cutting = 2;
-    private static final int size_of_elite = 2;
-    private static final double part_replacement_factor=0.5;
+    private static final int size_of_elite = 1;
+    private static final double part_replacement_factor=0.4;
     private  final int sizePopulation;
 	private Graph graph;
 	private Population basePopulation;
@@ -118,10 +118,7 @@ public class EvolutionaryAlgorithm {
         stopTimer=System.currentTimeMillis();
         time=stopTimer-overallStartTimer;
         System.out.println("Overall  time---------> "+ time + " MS");
-     
-
-
-	}
+    }
 	
 	public void run(){
 		
@@ -178,10 +175,44 @@ public class EvolutionaryAlgorithm {
 	        ex.printStackTrace();
 	    }catch(Exception ex){
 	        ex.printStackTrace();
-    }
+	    }
 	}
 	
-	public void createInitPopulationAfterGeneticOp() throws CloneNotSupportedException{
+	
+    public Statistic getStatistic(){
+    	return stats;
+    }
+    
+    public int[] getResult(){
+    	int[] resultTable = new int[bestChromosom.getFitnes()];
+    	String[] cliqueStringTable = bestChromosom.getClique().split(",");
+    	for(int i=0; i<resultTable.length; i++){
+    		resultTable[i] = Integer.parseInt(cliqueStringTable[i].trim());
+    	}
+    	
+    	return resultTable;
+    }
+    
+    
+    
+    private void partReplacementSuccesion() {
+		Chromosom[] basePopulationSortTable=basePopulation.sortByFitness();
+    	Chromosom[] tempPopulationSortTable=tempPopulation.sortByFitness();
+    	
+    	Population newPopulation = new Population(basePopulation.getSizePopulation());
+    	int sizeOfPart=(int)Math.round(part_replacement_factor*basePopulation.getSizePopulation());
+    	for(int i=0;i<sizeOfPart;i++){
+    		newPopulation.addChromosom(tempPopulationSortTable[i]);
+    	}
+    	for(int i=0;i<basePopulation.getSizePopulation()-sizeOfPart;i++){
+    		newPopulation.addChromosom(basePopulationSortTable[i]);
+    		
+    	}
+    	
+    	basePopulation=newPopulation;
+	}
+    
+	private void createInitPopulationAfterGeneticOp() throws CloneNotSupportedException{
 		long startTimer,stopTimer,time;
 		generateInitPopulation();
     	mutateInitPopulation();
@@ -194,7 +225,8 @@ public class EvolutionaryAlgorithm {
         System.out.println("Local Optimization InitPop  time----->: "+ time + " MS");
         
 	}
-	public void generateInitPopulation() throws CloneNotSupportedException {
+	
+	private void generateInitPopulation() throws CloneNotSupportedException {
         
 		Chromosom xChromosom =null;
         Random  randomVertexGen= new Random();
@@ -243,7 +275,7 @@ public class EvolutionaryAlgorithm {
 	}
 	
 	
-	 public void mutateInitPopulation() throws CloneNotSupportedException{
+	 private void mutateInitPopulation() throws CloneNotSupportedException{
 	        
 	        Random doubleGenerator=new Random();
 	        double doubleRandom;
@@ -273,7 +305,7 @@ public class EvolutionaryAlgorithm {
 
 	 }
 	 
-	 public void mutateTempPopulation() throws CloneNotSupportedException {
+	 private void mutateTempPopulation() throws CloneNotSupportedException {
 	        
 		 Random doubleGenerator=new Random();
 	        double doubleRandom;
@@ -301,7 +333,7 @@ public class EvolutionaryAlgorithm {
 	        //System.out.println("Osobniki: " +percentMutate+ " Geny: "+ percentMutateGen );
 	 }
 	 
-	    public void localOptimization() throws CloneNotSupportedException{
+	 private void localOptimization() throws CloneNotSupportedException{
 	        Graph subGraph = null;
 	        
 	        for(int i=0;i<basePopulation.getSizePopulation();i++){
@@ -320,302 +352,268 @@ public class EvolutionaryAlgorithm {
 	            // <--------------RESEARCH MAX CLIQUE WITOUT IMPROVEMENT CLIQUE--------------->
 	            subGraph.improvementClique(graph,basePopulation.getChromosom(i));
 	        }
+	 }
+	    
+	 private void localOptimizationAfterGeneticOperation() throws CloneNotSupportedException{
+		    Graph subGraph = null;
+		  
+		    for(int i=0;i<tempPopulation.getSizePopulation();i++){
+		        subGraph= (Graph)graph.clone();
+		        subGraph.loadChromosom(tempPopulation.getChromosom(i));
+		        subGraph.extractionClique();
+		        boolean[] booleanArrayVertex=subGraph.getBoolArrayVertex();
+		        tempPopulation.getChromosom(i).update(booleanArrayVertex);
+		        subGraph.improvementClique(graph,tempPopulation.getChromosom(i));
+		    }
+	 }
+	    
+	private void reproduction() throws CloneNotSupportedException,Exception{
+	    
+	  pairForCrossing.clear();
+	  tempPopulation.clear();
+	  pairForCrossing=reproduction.getPairForCrossing(basePopulation);
+	    
+	  int[][] tableOfPointsCrossing =getRandomCrossingPoint();
+	     for(int i=0; i<tableOfPointsCrossing.length;i++){
+		    Chromosom[] chromosomeAfterCrossing= new Chromosom[2];
+	    	crossover.setParameters(tableOfPointsCrossing[i],
+		    		basePopulation.getChromosom(pairForCrossing.get((2*i))), 
+		    		basePopulation.getChromosom(pairForCrossing.get(2*i+1)));
+		    chromosomeAfterCrossing= crossover.getChromosomes();
+		    tempPopulation.addChromosom(chromosomeAfterCrossing[0].clone());
+		    tempPopulation.addChromosom(chromosomeAfterCrossing[1].clone());
 	    }
 	    
-	    public void localOptimizationAfterGeneticOperation() throws CloneNotSupportedException{
-	        Graph subGraph = null;
-	      
-	        for(int i=0;i<tempPopulation.getSizePopulation();i++){
-	            subGraph= (Graph)graph.clone();
-	            subGraph.loadChromosom(tempPopulation.getChromosom(i));
-	            subGraph.extractionClique();
-	            boolean[] booleanArrayVertex=subGraph.getBoolArrayVertex();
-	            tempPopulation.getChromosom(i).update(booleanArrayVertex);
-	            subGraph.improvementClique(graph,tempPopulation.getChromosom(i));
-	        }
-	    }
 	    
-	    public void reproduction() throws CloneNotSupportedException,Exception{
-	        
-	        pairForCrossing.clear();
-	        tempPopulation.clear();
-	        pairForCrossing=reproduction.getPairForCrossing(basePopulation);
-	        
-	        
-	      int[][] tableOfPointsCrossing =getRandomCrossingPoint();
-	         for(int i=0; i<tableOfPointsCrossing.length;i++){
-	    	    Chromosom[] chromosomeAfterCrossing= new Chromosom[2];
-	        	crossover.setParameters(tableOfPointsCrossing[i],
-	    	    		basePopulation.getChromosom(pairForCrossing.get((2*i))), 
-	    	    		basePopulation.getChromosom(pairForCrossing.get(2*i+1)));
-	    	    chromosomeAfterCrossing= crossover.getChromosomes();
-	    	    tempPopulation.addChromosom(chromosomeAfterCrossing[0].clone());
-	    	    tempPopulation.addChromosom(chromosomeAfterCrossing[1].clone());
-	        }
-	        
-	        
-	    }
+	}
 	    
-	    public void prepareNextPopulation() throws CloneNotSupportedException{
-	    	
-	    	switch(successionType){
-		    	case SIMPLY: {
-		    		simplySuccession();
-		    		break;	
-		    	}
-		    	case ELITARY: {
-		    		elitarySuccesion();
-		    		break;
-		    	}
-		    	case PART_REPLACEMENT:{
-		    		partReplacementSuccesion();
-		    		break;
-		    	}
-		    	case HAMMING_REPLACEMENT:{
-		    		hammingReplacementSuccesion();
-		    		break;
-		    	}
+    private void prepareNextPopulation() throws CloneNotSupportedException{
+    	switch(successionType){
+	    	case SIMPLY: {
+	    		simplySuccession();
+	    		break;	
 	    	}
-	    	
-	    }
-	    
-	    public Statistic getStatistic(){
-	    	
-	    	return stats;
-	    }
-	    
-	    private void partReplacementSuccesion() {
-			
-	    	Chromosom[] basePopulationSortTable=basePopulation.sortByFitness();
-	    	Chromosom[] tempPopulationSortTable=tempPopulation.sortByFitness();
-	    	
-	    	Population newPopulation = new Population(basePopulation.getSizePopulation());
-	    	int sizeOfPart=(int)Math.round(part_replacement_factor*basePopulation.getSizePopulation());
-	    	for(int i=0;i<sizeOfPart;i++){
-	    		newPopulation.addChromosom(tempPopulationSortTable[i]);
+	    	case ELITARY: {
+	    		elitarySuccesion();
+	    		break;
 	    	}
-	    	
-	    	for(int i=0;i<basePopulation.getSizePopulation()-sizeOfPart;i++){
-	    		newPopulation.addChromosom(basePopulationSortTable[i]);
-	    		
+	    	case PART_REPLACEMENT:{
+	    		partReplacementSuccesion();
+	    		break;
 	    	}
-	    	
-	    	basePopulation=newPopulation;
-		}
+	    	case HAMMING_REPLACEMENT:{
+	    		hammingReplacementSuccesion();
+	    		break;
+	    	}
+    	}
+    	
+    }
+	    
 
-		private void elitarySuccesion() {
-			
-	    	Chromosom[] basePopulationSortTable=basePopulation.sortByFitness();
-	    	Chromosom[] tempPopulationSortTable=tempPopulation.sortByFitness();
-	    	
-	    	Population newPopulation = new Population(basePopulation.getSizePopulation());
-	    	for(int i=0;i<size_of_elite;i++){
-	    		newPopulation.addChromosom(basePopulationSortTable[i]);
-	    	}
-	    	
-	    	for(int i=0;i<basePopulation.getSizePopulation()-size_of_elite;i++){
-	    		newPopulation.addChromosom(tempPopulationSortTable[i]);
-	    		
-	    	}
-	    	
-	    	basePopulation=newPopulation;
-			
-		}
 
-		private void simplySuccession() throws CloneNotSupportedException{
-	    	basePopulation= (Population)tempPopulation.clone();
-	    }
-	    
-		private void hammingReplacementSuccesion() throws CloneNotSupportedException{
-			
-			ArrayList<Chromosom> reserveChromList = new ArrayList<>();
-			int size = tempPopulation.getSizePopulation()/2;
-			
-			for(int i=0;i<size;i++){
-				//Population copyBasePopulation = (Population) basePopulation.clone();
-				Chromosom parent1 = basePopulation.getChromosom(pairForCrossing.get(2*i));
-				Chromosom parent2 = basePopulation.getChromosom(pairForCrossing.get(2*i+1));
-				Chromosom offspring1 = tempPopulation.getChromosom(2*i);
-				Chromosom offspring2 = tempPopulation.getChromosom(2*i+1);
-				int hammingDst1 = 0;
-				int hammingDst2 = 0;
-				boolean changeFlag=false;
-				
-				
-				if(offspring1.getFitnes()>offspring2.getFitnes()){
-					 hammingDst1 = offspring1.getHammingDistance(parent1);
-					 hammingDst2 = offspring1.getHammingDistance(parent2);
-					
-					if(hammingDst1<hammingDst2){
-						if (offspring1.getFitnes() > parent1.getFitnes() ){
-							basePopulation.setChromosom(pairForCrossing.get(2*i), offspring1);
-							changeFlag=true;
-						}else if(offspring1.getFitnes() > parent2.getFitnes()){
-							basePopulation.setChromosom(pairForCrossing.get(2*i+1), offspring1);
-							changeFlag=true;
-						}
-					}else{
-						if (offspring1.getFitnes() > parent2.getFitnes() ){
-							basePopulation.setChromosom(pairForCrossing.get(2*i+1), offspring1);
-							changeFlag=true;
-						}else if(offspring1.getFitnes() > parent1.getFitnes()){
-							basePopulation.setChromosom(pairForCrossing.get(2*i), offspring1);
-							changeFlag=true;
-						}
-					}
-					
-				}else{
-					 hammingDst1 = offspring2.getHammingDistance(parent1);
-					 hammingDst2 = offspring2.getHammingDistance(parent2);
-					if(hammingDst1<hammingDst2){
-						if (offspring2.getFitnes() > parent1.getFitnes() ){
-							basePopulation.setChromosom(pairForCrossing.get(2*i), offspring2);
-							changeFlag=true;
-						}else if(offspring2.getFitnes() > parent2.getFitnes()){
-							basePopulation.setChromosom(pairForCrossing.get(2*i+1), offspring2);
-							changeFlag=true;
-						}
-					}else{
-						if (offspring2.getFitnes() > parent2.getFitnes() ){
-							basePopulation.setChromosom(pairForCrossing.get(2*i+1), offspring2);
-							changeFlag=true;
-						}else if(offspring2.getFitnes() > parent1.getFitnes()){
-							basePopulation.setChromosom(pairForCrossing.get(2*i), offspring2);
-							changeFlag=true;
-						}
-					}
-					 
-				}//end if offspring1.getFitnes()>offspring2.getFitnes()
-				if(changeFlag==false){
-					Chromosom bestChromosom = (offspring1.getFitnes()>offspring2.getFitnes())? offspring1 : offspring2;
-					reserveChromList.add(bestChromosom);
-				}
-			}//end for
-			
-			Chromosom[] sortChromosomTable = basePopulation.sortByFitness();
-			for(int i=0;i<reserveChromList.size();i++){
-				if(reserveChromList.get(i).getFitnes() > sortChromosomTable[sortChromosomTable.length-1].getFitnes()){
-					sortChromosomTable[sortChromosomTable.length-1] = reserveChromList.get(i);
-				};
-				
-				sortChromosomTable = basePopulation.sortByFitness();
-			}
-			
-	    }
+	private void elitarySuccesion() {
 		
-	    private int[][] getRandomCrossingPoint() throws Exception{
-	    	
-	    	if( basePopulation.getSizePopulation() % 2==1) throw new Exception("odd size of Population");
-	    	
-	    	int size = basePopulation.getSizePopulation()/2;
-	    	int noCut =crossover.getNoOfCut();
-	    	int[][] result = new int[size][noCut];
-	    	
-	    	for(int i=0;i<size;i++){
-	    		result[i]= RandomWithoutDuplicate.get(noCut,graph.getNoVertex()-1);
-	    		Arrays.sort(result[i]);
-	    	}
-	    	
-	    	return result;
-	    }
+		Chromosom[] basePopulationSortTable=basePopulation.sortByFitness();
+		Chromosom[] tempPopulationSortTable=tempPopulation.sortByFitness();
+		
+		Population newPopulation = new Population(basePopulation.getSizePopulation());
+		for(int i=0;i<size_of_elite;i++)
+			newPopulation.addChromosom(basePopulationSortTable[i]);
+		for(int i=0;i<basePopulation.getSizePopulation()-size_of_elite;i++)
+			newPopulation.addChromosom(tempPopulationSortTable[i]);
+			
+		basePopulation=newPopulation;
+	}
+
+	private void simplySuccession() throws CloneNotSupportedException{
+    	basePopulation= (Population)tempPopulation.clone();
+    }
 	    
-	    
-	    
-	    private void savePopulationToFile(Population pop,String directoryPath){
-	    	Path newFile = Paths.get(directoryPath);
-	    	
-	    	try{
-	    		Files.deleteIfExists(newFile);
-	    		newFile=Files.createFile(newFile);
-	    		BufferedWriter writer = Files.newBufferedWriter(newFile, Charset.defaultCharset());
-	    		writer.append("s initial_select_prob="+this.initial_select_prob +" initial_mutate_prob=" + this.initial_mutate_prob);
-	    		writer.newLine();
-	    		writer.append("s AVG FITNESS: " +pop.getAvgFitness() + "  BEST FITNESS: " + pop.getBestChromosome().getFitnes()+ 
-	    						" SIZE POP: "+ pop.getSizePopulation());
-	    		writer.newLine();
-	    		
-	    		for(Chromosom x:pop){
-	    			writer.append(x.getChromosomeCode());
-	    			writer.newLine();
-	    		}
-	    		writer.flush();
-	    	}catch (IOException ex){
-	    		System.out.println("Error creating file");
-	    	}
-	    }
-	    
-	    private void loadPopulationWithFile(String directoryPath){
-	    	
-	    	basePopulation.clear();
-	    	BufferedReader reader=null;
-	    	try{
-	    		reader = new BufferedReader(new FileReader(directoryPath));
-	    		String sCurrentLine;
-	    		
-	    		while ((sCurrentLine=reader.readLine())!=null){
-	    			if(sCurrentLine.charAt(0)=='s'){
-	    				continue;
-	    			}
-	    			
-	    			Chromosom tmpChrom= new Chromosom(sCurrentLine);
-	    			basePopulation.addChromosom(tmpChrom);
-	    		}
-	    		reader.close();
-	    	}catch(IOException ex){
-	    		System.out.println("Error loading file");
-	    	}
-	    }
-	    
-	    
-	    private void updateBestGlobalChromosome() throws CloneNotSupportedException{
-	    	
-	    	int bestChromFitInCurrentBasePop = basePopulation.getBestChromosome().getFitnes();
-	    	int bestGlobalChromFitInCurrentBasePop = bestChromosom.getFitnes();
-	    	if( bestChromFitInCurrentBasePop > bestGlobalChromFitInCurrentBasePop){
-	    		bestChromosom = (Chromosom) basePopulation.getBestChromosome().clone();
-	    	}
-	    	
-	    }
-	    
-	    private void prepareStopConditionPar(){
-	    	switch(stopCondition.getType()){
-	    		case STAGNACY_CONDITION:{
-	    			 StagnacyCondition cond = (StagnacyCondition)stopCondition;
-	    			 cond.setParameter(bestChromosom.getFitnes(), stats);
-	    			 break;
-	    		}
-				case NO_ITERATE:{
-					NoIterateCondition cond = (NoIterateCondition)stopCondition;
-		   			 cond.setParameter(stats);
-					break;
+	private void hammingReplacementSuccesion() throws CloneNotSupportedException{
+		
+		ArrayList<Chromosom> reserveChromList = new ArrayList<>();
+		int size = tempPopulation.getSizePopulation()/2;
+		
+		for(int i=0;i<size;i++){
+			//Population copyBasePopulation = (Population) basePopulation.clone();
+			Chromosom parent1 = basePopulation.getChromosom(pairForCrossing.get(2*i));
+			Chromosom parent2 = basePopulation.getChromosom(pairForCrossing.get(2*i+1));
+			Chromosom offspring1 = tempPopulation.getChromosom(2*i);
+			Chromosom offspring2 = tempPopulation.getChromosom(2*i+1);
+			int hammingDst1 = 0;
+			int hammingDst2 = 0;
+			boolean changeFlag=false;
+			
+			if(offspring1.getFitnes()>offspring2.getFitnes()){
+				 hammingDst1 = offspring1.getHammingDistance(parent1);
+				 hammingDst2 = offspring1.getHammingDistance(parent2);
+				
+				if(hammingDst1<hammingDst2){
+					if (offspring1.getFitnes() > parent1.getFitnes() ){
+						basePopulation.setChromosom(pairForCrossing.get(2*i), offspring1);
+						changeFlag=true;
+					}else if(offspring1.getFitnes() > parent2.getFitnes()){
+						basePopulation.setChromosom(pairForCrossing.get(2*i+1), offspring1);
+						changeFlag=true;
+					}
+				}else{
+					if (offspring1.getFitnes() > parent2.getFitnes() ){
+						basePopulation.setChromosom(pairForCrossing.get(2*i+1), offspring1);
+						changeFlag=true;
+					}else if(offspring1.getFitnes() > parent1.getFitnes()){
+						basePopulation.setChromosom(pairForCrossing.get(2*i), offspring1);
+						changeFlag=true;
+					}
 				}
-				case MIN_RESULT:{
-					MinResultCondition cond = (MinResultCondition)stopCondition;
-		   			cond.setParameter(bestChromosom.getFitnes());
-					break;
+				
+			}else{
+				 hammingDst1 = offspring2.getHammingDistance(parent1);
+				 hammingDst2 = offspring2.getHammingDistance(parent2);
+				if(hammingDst1<hammingDst2){
+					if (offspring2.getFitnes() > parent1.getFitnes() ){
+						basePopulation.setChromosom(pairForCrossing.get(2*i), offspring2);
+						changeFlag=true;
+					}else if(offspring2.getFitnes() > parent2.getFitnes()){
+						basePopulation.setChromosom(pairForCrossing.get(2*i+1), offspring2);
+						changeFlag=true;
+					}
+				}else{
+					if (offspring2.getFitnes() > parent2.getFitnes() ){
+						basePopulation.setChromosom(pairForCrossing.get(2*i+1), offspring2);
+						changeFlag=true;
+					}else if(offspring2.getFitnes() > parent1.getFitnes()){
+						basePopulation.setChromosom(pairForCrossing.get(2*i), offspring2);
+						changeFlag=true;
+					}
 				}
+				 
+			}//end if offspring1.getFitnes()>offspring2.getFitnes()
+			if(changeFlag==false){
+				Chromosom bestChromosom = (offspring1.getFitnes()>offspring2.getFitnes())? offspring1 : offspring2;
+				reserveChromList.add(bestChromosom);
 			}
-	    	
-	    }
+		}//end for
+		
+		Chromosom[] sortChromosomTable = basePopulation.sortByFitness();
+		for(int i=0;i<reserveChromList.size();i++){
+			if(reserveChromList.get(i).getFitnes() > sortChromosomTable[sortChromosomTable.length-1].getFitnes()){
+				sortChromosomTable[sortChromosomTable.length-1] = reserveChromList.get(i);
+			};
+			
+			sortChromosomTable = basePopulation.sortByFitness();
+		}
+		
+	}
+		
+	private int[][] getRandomCrossingPoint() throws Exception{
+		
+		if( basePopulation.getSizePopulation() % 2==1) throw new Exception("odd size of Population");
+		
+		int size = basePopulation.getSizePopulation()/2;
+		int noCut =crossover.getNoOfCut();
+		int[][] result = new int[size][noCut];
+		
+		for(int i=0;i<size;i++){
+			result[i]= RandomWithoutDuplicate.get(noCut,graph.getNoVertex()-1);
+			Arrays.sort(result[i]);
+		}
+		
+		return result;
+	}
 	    
-	    private void  prepareParameterOfGeneticOperation(int noOfGenetarion){
-	    	
-	    	if(noOfGenetarion != 0 && 
-	    	   noOfGenetarion % change_step_for_genetic_operator == 0){
-	    		if( ! (offspring_selection_prob <= step_offspring_selection_prob) )
-	    			offspring_selection_prob = offspring_selection_prob - step_offspring_selection_prob ;
-	    		if( ! (offspring_mutate_prob <= step_offspring_mutate_prob ))
-	    			offspring_mutate_prob = offspring_mutate_prob - step_offspring_selection_prob;
-	    		if( ! (noOfCutting <= step_reduce_no_of_cutting))
-	    			noOfCutting -= step_reduce_no_of_cutting; 
-	    		
-	    		crossover.setNoOfCut(noOfCutting);
-	    		System.out.println("LICZBA CIEC: " + crossover.getNoOfCut() + "offspring_selection_prob: " + offspring_selection_prob + 
-	    				" offspring_mutate_prob: "+ offspring_mutate_prob);
-	    		
-	    	}
-	    	
-	    }
+	private void savePopulationToFile(Population pop,String directoryPath){
+		Path newFile = Paths.get(directoryPath);
+		
+		try{
+			Files.deleteIfExists(newFile);
+			newFile=Files.createFile(newFile);
+			BufferedWriter writer = Files.newBufferedWriter(newFile, Charset.defaultCharset());
+			writer.append("s initial_select_prob="+this.initial_select_prob +" initial_mutate_prob=" + this.initial_mutate_prob);
+			writer.newLine();
+			writer.append("s AVG FITNESS: " +pop.getAvgFitness() + "  BEST FITNESS: " + pop.getBestChromosome().getFitnes()+ 
+							" SIZE POP: "+ pop.getSizePopulation());
+			writer.newLine();
+			
+			for(Chromosom x:pop){
+				writer.append(x.getChromosomeCode());
+				writer.newLine();
+			}
+			writer.flush();
+		}catch (IOException ex){
+			System.out.println("Error creating file");
+		}
+	}
+	    
+	private void loadPopulationWithFile(String directoryPath){
+		
+		basePopulation.clear();
+		BufferedReader reader=null;
+		try{
+			reader = new BufferedReader(new FileReader(directoryPath));
+			String sCurrentLine;
+			
+			while ((sCurrentLine=reader.readLine())!=null){
+				if(sCurrentLine.charAt(0)=='s')
+					continue;
+				
+				Chromosom tmpChrom= new Chromosom(sCurrentLine);
+				basePopulation.addChromosom(tmpChrom);
+			}
+			reader.close();
+		}catch(IOException ex){
+			System.out.println("Error loading file");
+		}
+	}
+	    
+	    
+	private void updateBestGlobalChromosome() throws CloneNotSupportedException{
+		
+		int bestChromFitInCurrentBasePop = basePopulation.getBestChromosome().getFitnes();
+		int bestGlobalChromFitInCurrentBasePop = bestChromosom.getFitnes();
+		if( bestChromFitInCurrentBasePop > bestGlobalChromFitInCurrentBasePop){
+			bestChromosom = (Chromosom) basePopulation.getBestChromosome().clone();
+		}
+		
+	}
+	    
+	private void prepareStopConditionPar(){
+		switch(stopCondition.getType()){
+			case STAGNACY_CONDITION:{
+				 StagnacyCondition cond = (StagnacyCondition)stopCondition;
+				 cond.setParameter(bestChromosom.getFitnes(), stats);
+				 break;
+			}
+			case NO_ITERATE:{
+				NoIterateCondition cond = (NoIterateCondition)stopCondition;
+	   			 cond.setParameter(stats);
+				break;
+			}
+			case MIN_RESULT:{
+				MinResultCondition cond = (MinResultCondition)stopCondition;
+	   			cond.setParameter(bestChromosom.getFitnes());
+				break;
+			}
+		}
+		
+	}
+	    
+	private void  prepareParameterOfGeneticOperation(int noOfGenetarion){
+		
+		if(noOfGenetarion != 0 && 
+		   noOfGenetarion % change_step_for_genetic_operator == 0){
+			if( ! (offspring_selection_prob <= step_offspring_selection_prob) )
+				offspring_selection_prob = offspring_selection_prob - step_offspring_selection_prob ;
+			if( ! (offspring_mutate_prob <= step_offspring_mutate_prob ))
+				offspring_mutate_prob = offspring_mutate_prob - step_offspring_selection_prob;
+			if( ! (noOfCutting <= step_reduce_no_of_cutting))
+				noOfCutting -= step_reduce_no_of_cutting; 
+			
+			crossover.setNoOfCut(noOfCutting);
+			//System.out.println("LICZBA CIEC: " + crossover.getNoOfCut() + "offspring_selection_prob: " + offspring_selection_prob + " offspring_mutate_prob: "+ offspring_mutate_prob);
+			
+		}
+		
+	}
 	    
 	    
 }

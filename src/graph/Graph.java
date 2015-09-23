@@ -29,6 +29,8 @@ public class Graph implements Cloneable {
                while ((sCurrentLine = br.readLine()) != null) {
                     if(sCurrentLine.contains("p edge")){
                         String[] lineParts=sCurrentLine.split(" ");
+                        lineParts = Arrays.stream(lineParts).
+                        		filter( s-> ( s.length() > 0 )).toArray(String[]::new);
                         if(lineParts[2]!=null){
                            resultNoVertex =Integer.parseInt(lineParts[2]);
                          }
@@ -83,6 +85,7 @@ public class Graph implements Cloneable {
     public String getName(){
     	return this.name;
     }
+    
     private void setEdge(int noVertexA,int noVertexB){
         edge[noVertexA][noVertexB] = true;
         edge[noVertexB][noVertexA] = true;
@@ -90,6 +93,9 @@ public class Graph implements Cloneable {
         degreeVertex[noVertexB]++;
     }
         
+    public boolean hasEdge(int noVertexA, int noVertexB){
+    	return edge[noVertexA][noVertexB] && edge[noVertexB][noVertexA];
+    }
     public int getNoVertex(){
         return  noVertex;
     }
@@ -318,12 +324,15 @@ public class Graph implements Cloneable {
 	    return result;
 	}
 	
-	public void setTest(){
-	    noVertex=10;
-	    degreeVertex[0]=100;
-	    edge[1][1]=true;
-	}
 	
+	public boolean checkClique(int[] vertexTable){
+		for(int i=0; i<vertexTable.length; i++){
+			for(int j=i+1; j<vertexTable.length; j++){
+				if( ! hasEdge( vertexTable[i], vertexTable[j])) return false; 
+			}
+		}
+		return true;
+	}
 	@Override
 	public  Graph clone() throws CloneNotSupportedException{
 	    Graph result=  new Graph(noVertex);
