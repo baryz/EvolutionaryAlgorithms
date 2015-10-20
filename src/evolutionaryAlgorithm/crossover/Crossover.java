@@ -24,8 +24,9 @@ public abstract class Crossover {
 	}
 	
 	public  int getNoOfCut(){
-		return this.noOfCut=noOfCut;
+		return this.noOfCut;
 	}
+	
 	public abstract Chromosom[] getChromosomes(); 
 	
 	

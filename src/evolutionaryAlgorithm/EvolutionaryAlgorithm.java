@@ -24,42 +24,48 @@ public class EvolutionaryAlgorithm {
 	
 	
 	private Chromosom bestChromosom;
-    private final double initial_select_prob=0.4;
-    private final double initial_mutate_prob=0.7;
-    private double offspring_selection_prob=0.5;
-    private final double step_offspring_selection_prob = 0.05;
-    private double offspring_mutate_prob=0.4;
-    private final double step_offspring_mutate_prob = 0.05;
-    private final int change_step_for_genetic_operator = 10;
+    //private final double init_select_prob=0.5;
+    //private final double init_mutate_prob=0.2;
+    //private double offspring_select_prob=0.4;
+    //private final double step_offspring_select_prob = 0.05;
+    //private double offspring_mutate_prob=0.2;
+    //private final double step_offspring_mutate_prob = 0.05;
+	private MutationParam mutationParam;
+    //private final int change_step_for_genetic_operator = 10;
+	private int changeStepMutation;
+	private int changeStepCrossover;
+	
+	
     private int noOfCutting;
-    private final int step_reduce_no_of_cutting = 2;
-    private static final int size_of_elite = 1;
-    private static final double part_replacement_factor=0.4;
+    private final int stepReduceNoCutting = 5;
+    
+    private static final int size_of_elite = 10;
+    private static final double part_replacement_factor=0.9;
+    private final int sizeTournament;
     private  final int sizePopulation;
 	private Graph graph;
 	private Population basePopulation;
 	private Population tempPopulation;
-
+	
 	private Crossover crossover;
 	private Reproduction reproduction;
+	private ReproductionType reproductionType;
 	private SuccessionType successionType;
-	
 	
 	private StopCondition stopCondition;
 	
-	
 	private Statistic stats;
 	private final Config config;
-	
+	private final boolean improvementClique;
 	public ArrayList<Integer> pairForCrossing;
 	
-	
-	
 	public EvolutionaryAlgorithm(Graph inGraph,int sizeOfPopulation,
-			ReproductionType reproType,CrossoverType crossType,
-			int noOfCut,SuccessionType succesType,
+			ReproductionType reproType,
+			CrossoverType crossType, int noOfCut, int inChangeStepCrossover,
+			MutationParam inMutationParam, int inChangeStepMutation,
+			SuccessionType succesType,
 			StopConditionType stopCondType, int parStopCondition,
-			Config conf,
+			boolean improveClique, Config conf,
 			int... quantityOfTour){
         graph=inGraph;
         sizePopulation = sizeOfPopulation;
@@ -72,15 +78,22 @@ public class EvolutionaryAlgorithm {
 	    crossover=factory.produceCrossover(crossType);
 	    noOfCutting = noOfCut;
 	    crossover.setNoOfCut(noOfCutting);
+	    changeStepCrossover = inChangeStepCrossover;
+	    
+	    mutationParam = inMutationParam;
+	    changeStepMutation = inChangeStepMutation;
+	    
 	    successionType=succesType;
 	    ReproductionFactory reproductionFactory= new ReproductionFactory();
-	    
+	    reproductionType = reproType;
 	    if(quantityOfTour.length > 0){
+	    	sizeTournament = quantityOfTour[0];
 	    	reproduction=reproductionFactory.produceReproduction(reproType, quantityOfTour[0]);
 	    }else{
+	    	sizeTournament = 0;
 	    	reproduction=reproductionFactory.produceReproduction(reproType);
 	    }
-	    
+	    improvementClique = improveClique;
 	    StopConditionFactory stopCondFactory= new StopConditionFactory();
 	    stopCondition = stopCondFactory.produceStopCondition(stopCondType, parStopCondition);
 	    
@@ -89,8 +102,10 @@ public class EvolutionaryAlgorithm {
 	
 	public static void main(String [] args){
 		
-		String graphName="keller5";
+		String graphName="san1000";
 		Config conf= new Config();
+		double[] mutationParamTable = {0.5, 0.2, 0,4, 0,2, 0,05, 0,05};
+		MutationParam inMutationParam = new MutationParam(mutationParamTable );
 		
 		 long overallStartTimer,startTimer, stopTimer,time;
         /*-----------LOAD GRAPH WITH FILE------------*/
@@ -104,9 +119,11 @@ public class EvolutionaryAlgorithm {
         /*-----------Init----------*/
         startTimer=System.currentTimeMillis();
         EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,100,ReproductionType.ROULLETEWHEEL,
-        						CrossoverType.MULTI_POINT,20,
+        						CrossoverType.MULTI_POINT,20,10,
+        						inMutationParam,10,
         						SuccessionType.HAMMING_REPLACEMENT,
         						StopConditionType.STAGNACY_CONDITION, 20,
+        						true, // improvement Clique
         						conf);
         stopTimer=System.currentTimeMillis();
         
@@ -123,50 +140,54 @@ public class EvolutionaryAlgorithm {
 	public void run(){
 		
 		long startTimer, stopTimer,time,startIterationTimer;
-       
+        
 		try{
         	 /*-----------Create Init Population----------*/
         	//loadPopulationWithFile(config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
         	createInitPopulationAfterGeneticOp();
         	stats = new Statistic( basePopulation );
-            stats.printInitPopulationData();
+        	  if(config.isDebug())  stats.printInitPopulationData();
+        	  
              /*-----------SAVE TO FILE Init Population----------*/
             //savePopulationToFile(basePopulation,config.getInitPopulationDirPath()+graph.getName()+config.getPopulationExtension());
             int i=0;
             prepareStopConditionPar();
             while(stopCondition.isContinue()){
-	           	System.out.println("----------------START IT-------------------------");
+	           	if(config.isDebug()) System.out.println("----------------START IT-------------------------");
 
             	startIterationTimer=System.currentTimeMillis();
             	  /*-------Reproduction Crossover------*/
-   	            startTimer=System.currentTimeMillis();
+   	            //startTimer=System.currentTimeMillis();
    	            reproduction();
-   	            stopTimer=System.currentTimeMillis();
-   	            time=stopTimer-startTimer;
+   	            //stopTimer=System.currentTimeMillis();
+   	            //time=stopTimer-startTimer;
    	            //System.out.println("Reproduction  time----->: "+ time + " MS");
    	            
    	            /*-------Mutate------*/
-   	            startTimer=System.currentTimeMillis();
+   	            //startTimer=System.currentTimeMillis();
    	            mutateTempPopulation();
-   	            stopTimer=System.currentTimeMillis();
-   	            time=stopTimer-startTimer;
+   	            //stopTimer=System.currentTimeMillis();
+   	            //time=stopTimer-startTimer;
    	            //System.out.println("Mutate after crossover  time----->: "+ time + " MS");
    	            
    	            /*-------Local Optimization after genetic operands------*/
-   	            startTimer=System.currentTimeMillis();
+   	            //startTimer=System.currentTimeMillis();
    	            localOptimizationAfterGeneticOperation();
-   	            stopTimer=System.currentTimeMillis();
-   	            time=stopTimer-startTimer;
+   	            //stopTimer=System.currentTimeMillis();
+   	            //time=stopTimer-startTimer;
    	            //System.out.println("Local Optimization after genetic operands  time----->: "+ time + " MS");
    	           
    	           prepareNextPopulation();
    	           
    	           stats.insertData(basePopulation, tempPopulation);
-   	           stats.printIterationData(i+1);
+   	     
+   	           if(config.isDebug()){
+   	        	   stats.printIterationData(i+1);
+	   	           System.out.println("IRERATION "+i + "  GLOBAL BEST : " + bestChromosom.getFitnes());
+	   	           System.out.println("STATS: "+ Arrays.toString(stats.getBestChromBaseList()));
+	   	           System.out.println("--------------------END IT--------------------------");
+   	           }
    	           updateBestGlobalChromosome();
-   	           System.out.println("IRERATION "+i + "  GLOBAL BEST : " + bestChromosom.getFitnes());
-   	           System.out.println("STATS: "+ Arrays.toString(stats.getBestChromBaseList()));
-   	           System.out.println("--------------------END IT--------------------------");
    	           prepareStopConditionPar();
    	           prepareParameterOfGeneticOperation(i);
    	           i++;
@@ -193,8 +214,6 @@ public class EvolutionaryAlgorithm {
     	return resultTable;
     }
     
-    
-    
     private void partReplacementSuccesion() {
 		Chromosom[] basePopulationSortTable=basePopulation.sortByFitness();
     	Chromosom[] tempPopulationSortTable=tempPopulation.sortByFitness();
@@ -213,22 +232,13 @@ public class EvolutionaryAlgorithm {
 	}
     
 	private void createInitPopulationAfterGeneticOp() throws CloneNotSupportedException{
-		long startTimer,stopTimer,time;
 		generateInitPopulation();
     	mutateInitPopulation();
-      
-        //-------Local Optimization------
-        startTimer=System.currentTimeMillis();
-        localOptimization();
-        stopTimer=System.currentTimeMillis();
-        time=stopTimer-startTimer;
-        System.out.println("Local Optimization InitPop  time----->: "+ time + " MS");
-        
+		localOptimization();
 	}
 	
 	private void generateInitPopulation() throws CloneNotSupportedException {
-        
-		Chromosom xChromosom =null;
+        Chromosom xChromosom =null;
         Random  randomVertexGen= new Random();
         for(int j=0;j<sizePopulation;j++){
             int randomVi=randomVertexGen.nextInt((graph.getNoVertex()-1));
@@ -237,7 +247,7 @@ public class EvolutionaryAlgorithm {
             ArrayList<Integer> adjacencyList = graph.getAdjacencyArrayList(randomVi);
 
             int randomIndexVj=0;
-            while(adjacencyList.size()>0){
+            while(adjacencyList.size() > 0){
                 boolean isInClique=false;
                 int randomVj=adjacencyList.get(0);
                 if(adjacencyList.size()==1){
@@ -279,28 +289,28 @@ public class EvolutionaryAlgorithm {
 	        
 	        Random doubleGenerator=new Random();
 	        double doubleRandom;
-	        int countMutatedChrom=0;
-	        int countMutatedGen=0;
+	        //int countMutatedChrom=0;
+	        //int countMutatedGen=0;
 	        int sizeChromosom=basePopulation.getChromosom(0).getSize();
 	        for(int i=0;i<basePopulation.getSizePopulation();i++){
 	            doubleRandom = doubleGenerator.nextDouble();
 	            //System.out.println("Cz mutuje chromosom: "+ i +  " draw: " + doubleRandom) ;
-	            if(doubleRandom<initial_select_prob){
-	                countMutatedChrom++;
+	            if(doubleRandom< mutationParam.getInitMutateProb()){
+	                //countMutatedChrom++;
 	                for(int j=0;j<sizeChromosom;j++){
 	                    doubleRandom=doubleGenerator.nextDouble();
 	                    //System.out.println("Czy mutuje gen "+ j +" draw"+ doubleRandom);
-	                    if(doubleRandom<initial_mutate_prob){
-	                        countMutatedGen++;
+	                    if(doubleRandom < mutationParam.getInitMutateProb()){
+	                        //countMutatedGen++;
 	                        basePopulation.getChromosom(i).setNegateGen(j);
 	                    }
 	                }
 	            }
 	        }
-	        double percentMutate=((double)countMutatedChrom)/(double)basePopulation.getSizePopulation();
-	        double percentMutateGen=(double)countMutatedGen/(double)(basePopulation.getSizePopulation()*sizeChromosom);
-	        System.out.println("Zmutowane chromosomy:" + countMutatedChrom+" Zmutowane geny: " + countMutatedGen);
-	        System.out.println("Osobniki: " +percentMutate+ " Geny: "+ percentMutateGen );
+	        //double percentMutate=((double)countMutatedChrom)/(double)basePopulation.getSizePopulation();
+	        //double percentMutateGen=(double)countMutatedGen/(double)(basePopulation.getSizePopulation()*sizeChromosom);
+	        //System.out.println("Zmutowane chromosomy:" + countMutatedChrom+" Zmutowane geny: " + countMutatedGen);
+	        //System.out.println("Osobniki: " +percentMutate+ " Geny: "+ percentMutateGen );
 	        
 
 	 }
@@ -309,26 +319,26 @@ public class EvolutionaryAlgorithm {
 	        
 		 Random doubleGenerator=new Random();
 	        double doubleRandom;
-	        int countMutatedChrom=0;
-	        int countMutatedGen=0;
+	        //int countMutatedChrom=0;
+	       // int countMutatedGen=0;
 	        int sizeChromosom=tempPopulation.getChromosom(0).getSize();
 	        for(int i=0;i<tempPopulation.getSizePopulation();i++){
 	            doubleRandom = doubleGenerator.nextDouble();
 	            //System.out.println("Cz mutuje chromosom: "+ i +  " draw: " + doubleRandom) ;
-	            if(doubleRandom<offspring_selection_prob){
-	                countMutatedChrom++;
+	            if(doubleRandom < mutationParam.getOffSelectProb()){
+	               //countMutatedChrom++;
 	                for(int j=0;j<sizeChromosom;j++){
 	                    doubleRandom=doubleGenerator.nextDouble();
 	                    //System.out.println("Czy mutuje gen "+ j +" draw"+ doubleRandom);
-	                    if(doubleRandom<offspring_mutate_prob){
-	                        countMutatedGen++;
+	                    if(doubleRandom < mutationParam.getOffMutateProb()){
+	                        //countMutatedGen++;
 	                        tempPopulation.getChromosom(i).setNegateGen(j);
 	                    }
 	                }
 	            }
 	        }
-	        double percentMutate=((double)countMutatedChrom)/(double)tempPopulation.getSizePopulation();
-	        double percentMutateGen=(double)countMutatedGen/(double)(tempPopulation.getSizePopulation()*sizeChromosom);
+	        //double percentMutate=((double)countMutatedChrom)/(double)tempPopulation.getSizePopulation();
+	        //double percentMutateGen=(double)countMutatedGen/(double)(tempPopulation.getSizePopulation()*sizeChromosom);
 	        //System.out.println("Zmutowane chromosomy:" + countMutatedChrom+" Zmutowane geny: " + countMutatedGen);
 	        //System.out.println("Osobniki: " +percentMutate+ " Geny: "+ percentMutateGen );
 	 }
@@ -342,15 +352,16 @@ public class EvolutionaryAlgorithm {
 	            subGraph.extractionClique();
 	            
 	             boolean[] booleanArrayVertex=subGraph.getBoolArrayVertex();
-	            boolean[] check = new boolean[booleanArrayVertex.length];
+	             /*boolean[] check = new boolean[booleanArrayVertex.length];
 	            if(Arrays.equals(booleanArrayVertex, check)){
 	            	
 	                System.out.println("ERROR !!!!!!!!!!");
 	              
-	            }
+	            }*/
 	            basePopulation.getChromosom(i).update(booleanArrayVertex);
 	            // <--------------RESEARCH MAX CLIQUE WITOUT IMPROVEMENT CLIQUE--------------->
-	            subGraph.improvementClique(graph,basePopulation.getChromosom(i));
+	            if(improvementClique)
+	            	subGraph.improvementClique(graph,basePopulation.getChromosom(i));
 	        }
 	 }
 	    
@@ -363,7 +374,8 @@ public class EvolutionaryAlgorithm {
 		        subGraph.extractionClique();
 		        boolean[] booleanArrayVertex=subGraph.getBoolArrayVertex();
 		        tempPopulation.getChromosom(i).update(booleanArrayVertex);
-		        subGraph.improvementClique(graph,tempPopulation.getChromosom(i));
+		        if (improvementClique)
+		        	subGraph.improvementClique(graph,tempPopulation.getChromosom(i));
 		    }
 	 }
 	    
@@ -521,14 +533,14 @@ public class EvolutionaryAlgorithm {
 		return result;
 	}
 	    
-	private void savePopulationToFile(Population pop,String directoryPath){
+	private void savePopulationToFile(Population pop,String directoryPath) throws IOException{
 		Path newFile = Paths.get(directoryPath);
-		
+		BufferedWriter writer = null;
 		try{
 			Files.deleteIfExists(newFile);
 			newFile=Files.createFile(newFile);
-			BufferedWriter writer = Files.newBufferedWriter(newFile, Charset.defaultCharset());
-			writer.append("s initial_select_prob="+this.initial_select_prob +" initial_mutate_prob=" + this.initial_mutate_prob);
+			writer = Files.newBufferedWriter(newFile, Charset.defaultCharset());
+			writer.append("s initial_select_prob="+this.mutationParam.getInitSelectProb() +" initial_mutate_prob=" + this.mutationParam.getInitMutateProb());
 			writer.newLine();
 			writer.append("s AVG FITNESS: " +pop.getAvgFitness() + "  BEST FITNESS: " + pop.getBestChromosome().getFitnes()+ 
 							" SIZE POP: "+ pop.getSizePopulation());
@@ -539,8 +551,12 @@ public class EvolutionaryAlgorithm {
 				writer.newLine();
 			}
 			writer.flush();
+			writer.close();
 		}catch (IOException ex){
 			System.out.println("Error creating file");
+			writer.close();
+		}finally{
+			writer.close();
 		}
 	}
 	    
@@ -599,20 +615,53 @@ public class EvolutionaryAlgorithm {
 	    
 	private void  prepareParameterOfGeneticOperation(int noOfGenetarion){
 		
-		if(noOfGenetarion != 0 && 
-		   noOfGenetarion % change_step_for_genetic_operator == 0){
-			if( ! (offspring_selection_prob <= step_offspring_selection_prob) )
-				offspring_selection_prob = offspring_selection_prob - step_offspring_selection_prob ;
-			if( ! (offspring_mutate_prob <= step_offspring_mutate_prob ))
-				offspring_mutate_prob = offspring_mutate_prob - step_offspring_selection_prob;
-			if( ! (noOfCutting <= step_reduce_no_of_cutting))
-				noOfCutting -= step_reduce_no_of_cutting; 
-			
-			crossover.setNoOfCut(noOfCutting);
-			//System.out.println("LICZBA CIEC: " + crossover.getNoOfCut() + "offspring_selection_prob: " + offspring_selection_prob + " offspring_mutate_prob: "+ offspring_mutate_prob);
-			
+		if(noOfGenetarion != 0 && changeStepMutation != 0 && noOfGenetarion % changeStepMutation == 0){
+			mutationParam.reduceOffSelectProb();
+			mutationParam.reduceOffMutateProb();
+			if(config.isDebug())  System.out.println(noOfGenetarion +". LICZBA CIEC: " + crossover.getNoOfCut() + 
+					"offspring_selection_prob: " + mutationParam.getOffSelectProb() + 
+					" offspring_mutate_prob: "+ mutationParam.getOffMutateProb());
+		}
+		if(noOfGenetarion != 0 && changeStepCrossover != 0 && noOfGenetarion % changeStepCrossover == 0){
+			if( ! (noOfCutting <= changeStepCrossover))
+				noOfCutting -= stepReduceNoCutting; 
+				crossover.setNoOfCut(noOfCutting);
+				if(config.isDebug()) System.out.println(noOfGenetarion +". LICZBA CIEC: " + crossover.getNoOfCut() + 
+					"offspring_selection_prob: " + mutationParam.getOffSelectProb() + 
+					" offspring_mutate_prob: "+ mutationParam.getOffMutateProb());
 		}
 		
+	}
+	
+	public String getAlgParam(){
+		StringBuilder result = new StringBuilder();
+		
+		result.append("Graph source file: "+ graph.filename + " \n");
+		result.append("Size population: " + sizePopulation + " \n");
+		
+		String repructionParam = "";
+		if(reproductionType.equals(ReproductionType.TOURNAMENT) ) repructionParam += " Size: "+sizeTournament;
+		result.append("Reproduction: "+ reproductionType.name() + repructionParam+"\n");
+		result.append("NoCut: "+ crossover.getNoOfCut() + 
+				" changeStepCrossover: "+ changeStepCrossover +
+				" stepReduceNoCutting: " + stepReduceNoCutting +" \n" );
+		
+		//result.append("CrossoverType: "+crossover.getCrossoverTypeName() + " NoCut: "+ crossover.getNoOfCut() +" \n");
+		result.append("InitSelectProb: "+ mutationParam.getInitSelectProb() + 
+				" InitMutateProb: " + mutationParam.getInitMutateProb() +"\n");
+		result.append("OffSelectProb" + mutationParam.getOffSelectProb() +
+						" OffMutateProb " + mutationParam.getOffMutateProb() + "\n"+
+						"changeStepMutation:  "+changeStepMutation+ 
+						" stepOffSelectProb: "+ mutationParam.getStepOffSelectProb()+
+						" stepOffMutateProb: "+ mutationParam.getStepOffMutateProb()+"\n");
+		
+		String succesionParam ="";
+		if(successionType.equals(SuccessionType.ELITARY)) succesionParam+="Size elit: " + size_of_elite;
+		if(successionType.equals(SuccessionType.PART_REPLACEMENT)) succesionParam+=" Replacement factor: "+part_replacement_factor;
+		result.append( "Succeession: " + successionType + succesionParam + "\n");
+		result.append("StopCondition: " + stopCondition.getType().name() +" param: " + stopCondition.getParam());
+		
+		return result.toString();
 	}
 	    
 	    

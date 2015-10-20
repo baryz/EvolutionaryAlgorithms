@@ -17,7 +17,7 @@ public class Statistic {
 	private ArrayList<String> bestCliqueTempPopulation;
 	private int noOfPopulation;
 	//private int[] algorithmParameter; 
-	
+	private int sizePopulation;
 	public Statistic( Population initPop){
 		
 		resultInitPopulation = getResultTable(initPop);
@@ -28,7 +28,7 @@ public class Statistic {
 		
 		resultTempPopulation = new ArrayList<>();
 		bestCliqueTempPopulation = new ArrayList<>();
-		
+		sizePopulation = initPop.getSizePopulation();
 		insertData(initPop, initPop);
 		
 	
@@ -73,11 +73,12 @@ public class Statistic {
 		
 		//System.out.println("ITERATION " + index);
 		System.out.println("BEST BASE RESULT : " + getMaxFitnesBase(index));
-       
-        System.out.println("AVG BASE: " + getAvgBasePopulation(index) + " BASE :" + Arrays.toString(resultBasePopulation.get(index)));
-		System.out.println("BEST TEMP RESULT : " + getMaxFitnesTemp(index));
-
-        System.out.println("AVG TEMP: " + getAvgTempPopulation(index) + " TEMP :" + Arrays.toString(resultTempPopulation.get(index)));
+		System.out.println("AVG BASE: " + getAvgBasePopulation(index) + " BASE :" + Arrays.toString(resultBasePopulation.get(index)));
+        System.out.println("STD DEV: " + getStdDevBasePopulation(index) );
+		
+        System.out.println("BEST TEMP RESULT : " + getMaxFitnesTemp(index));
+		System.out.println("AVG TEMP: " + getAvgTempPopulation(index) + " TEMP :" + Arrays.toString(resultTempPopulation.get(index)));
+		System.out.print("STD DEV: " + getStdDevTempPopulation(index));
 	}
 	
 	public double getAvgBasePopulation(int indexPop){
@@ -86,6 +87,23 @@ public class Statistic {
 	
 	public double getAvgTempPopulation(int indexPop){
 		return getAvgTable( resultTempPopulation.get(indexPop) );
+	}
+	
+	public double getStdDevBasePopulation(int indexPop){
+		return getStdDevTable(resultBasePopulation.get(indexPop));
+	}
+	
+	public double getAverageStdDevBasePopulation(){
+		double sumStdDev = 0.0;
+		
+		for( int i = 0; i<noOfPopulation; i++) {
+			sumStdDev += getStdDevBasePopulation(i);
+		}
+		return sumStdDev/noOfPopulation;
+	}
+	
+	public double getStdDevTempPopulation(int indexPop){
+		return getStdDevTable(resultTempPopulation.get(indexPop));
 	}
 	
 	public double[] getAvgBasePopulationList(){
@@ -118,6 +136,10 @@ public class Statistic {
 		return noOfPopulation;
 	}
 	
+	public int getSizePopulation(){
+		return sizePopulation;
+	}
+	
 	private int[] getResultTable(Population inPop){
 		int size = inPop.getSizePopulation();
 		int[] result = new int[size];
@@ -131,12 +153,20 @@ public class Statistic {
 	}
 	
 	private double getAvgTable( int[] inData){
-		
 		return Arrays.stream(inData).average().getAsDouble();
 	}
 	
 	private int getMax( int[] inData){
 		return Arrays.stream(inData).max().getAsInt();
 	}
-	
+	private double getStdDevTable(int[] inData){
+		int size = inData.length;
+		double avg = getAvgTable(inData);
+		double tmp = 0;
+		for(int x: inData){
+			tmp += (avg-x)*(avg-x);
+		}
+		
+		return Math.sqrt(tmp/size);
+	}
 }
