@@ -1,0 +1,18 @@
+Graph source file: resourceData/graph/keller6.clq 
+Size population: 100 
+Reproduction: RANK
+NoCut: 30 changeStepCrossover: 10 stepReduceNoCutting: 5 
+InitSelectProb: 0.5 InitMutateProb: 0.2
+OffSelectProb0.05 OffMutateProb 0.9
+changeStepMutation:  10 stepOffSelectProb: 0.0 stepOffMutateProb: 0.1
+Succeession: HAMMING_REPLACEMENT
+StopCondition: STAGNACY_CONDITION param: 15
+0. Count 57 RESULT: 52 AVgStdDev: 4.017625477598186
+1. Count 44 RESULT: 52 AVgStdDev: 4.0106008341436485
+2. Count 27 RESULT: 48 AVgStdDev: 4.279526964279866
+3. Count 52 RESULT: 51 AVgStdDev: 3.583338992236036
+4. Count 38 RESULT: 52 AVgStdDev: 4.783872987400393
+AVG NO ITERATE: 43.6
+AVG RESULT: 51.0
+AVG (AVD STD DEV: 4.134993051131626
+OVERALL TIME 5 IT: 4716362
