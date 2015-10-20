@@ -58,13 +58,17 @@ public class EvolutionaryAlgorithmTest {
     public final void checkIfResultIsClique (){
     	
     	Config conf= new Config();
+    	double[] mutationParamTable = {0.5, 0.2, 0.4, 0.2, 0.05, 0.05};
+	
     	Graph inGraph = new Graph( conf.getInGraphDirPath()+ graphName + conf.getInGraphExtension(),graphName);
+    	MutationParam inMutationParam = new MutationParam(mutationParamTable );
     	 EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(inGraph,this.sizeOfPopulation,
 					ReproductionType.ROULLETEWHEEL,
-					CrossoverType.MULTI_POINT,10,
+					CrossoverType.MULTI_POINT,10,10,
+					inMutationParam,10,
 					SuccessionType.HAMMING_REPLACEMENT,
 					StopConditionType.STAGNACY_CONDITION, 5,
-					conf,
+					true,conf,
 					10);
     	 alg.run();
     	 Assert.assertEquals(true, inGraph.checkClique(alg.getResult()));

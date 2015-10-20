@@ -101,18 +101,16 @@ public class Graph implements Cloneable {
     }
     
     public ArrayList<Integer>  getMinDegreeVertex(){
-        
         ArrayList<Integer> result=new ArrayList<>();
         if(noVertex==0) return result;
+        int minResult=degreeVertex.length;
         
-        int bestResult=degreeVertex.length;
-        //result.add(degreeVertex.length);
         for(int i=0;i<degreeVertex.length;i++){
-            if(degreeVertex[i]<bestResult && degreeVertex[i]!=0){
-                bestResult=degreeVertex[i];
+            if(degreeVertex[i]<minResult && degreeVertex[i]!=0){
+                minResult=degreeVertex[i];
                 result.clear();
                 result.add(i);
-            }else if(degreeVertex[i]==bestResult){
+            }else if(degreeVertex[i]==minResult){
                 result.add(i);
             }
         }
@@ -237,7 +235,7 @@ public class Graph implements Cloneable {
 	    int countOfImprove=0;
 	    Random randGen=new Random();
 	    int randPosition =  randGen.nextInt(inChrom.getSize()-1);
-	    
+	   
 	    for(int i=randPosition;i<inChrom.getSize();i++){
 	        Gen tmpGen= (Gen) inChrom.getGen(i).clone();
 	        if(!(tmpGen.getValue())){
