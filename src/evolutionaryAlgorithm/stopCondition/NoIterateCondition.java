@@ -1,6 +1,5 @@
 package evolutionaryAlgorithm.stopCondition;
 
-import evolutionaryAlgorithm.Chromosom;
 import evolutionaryAlgorithm.Statistic;
 
 public class NoIterateCondition extends StopCondition {
@@ -15,6 +14,11 @@ public class NoIterateCondition extends StopCondition {
 	
 	public void setParameter( Statistic currentStatistic){
 		currentStat = currentStatistic;
+	}
+	
+	@Override
+	public int getParam(){
+		return noIterate;
 	}
 	
 	@Override

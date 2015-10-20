@@ -14,6 +14,12 @@ public class MinResultCondition extends StopCondition {
 	public void setParameter(int bestChromosomFitnes){
 		currentBestFitness = bestChromosomFitnes;
 	}
+	
+	@Override
+	public int getParam(){
+		return minAcceptResult;
+	}
+	
 	@Override
 	public boolean isContinue() {
 		 

@@ -1,6 +1,6 @@
 package evolutionaryAlgorithm.stopCondition;
 
-import evolutionaryAlgorithm.Chromosom;
+
 import evolutionaryAlgorithm.Statistic;
 
 public class StagnacyCondition extends StopCondition {
@@ -20,6 +20,11 @@ public class StagnacyCondition extends StopCondition {
 	}
 	
 	@Override
+	public int getParam(){
+		return stopLimit;
+	}
+	
+	@Override
 	public boolean isContinue() {
 		
 		int noOfIterateWhenFindCurBestChrom=0;
@@ -32,10 +37,9 @@ public class StagnacyCondition extends StopCondition {
 			}
 		}
 		noIterateWithoutImprovement =  (currentStat.getNoOfPopulation() - 1) - noOfIterateWhenFindCurBestChrom;
-		//System.out.println("BEST CHROM FIT: " + globalBestChromosom.getFitnes());
-		//System.out.println("currentStat.getNoOfPopulation() : " + currentStat.getNoOfPopulation());
-		//System.out.println("noOfIterateWhenFindCurBestChrom : " + noOfIterateWhenFindCurBestChrom);
-		System.out.println("noIterateWithoutImprovement: " + noIterateWithoutImprovement + " stopCOnd: "+ (noIterateWithoutImprovement<stopLimit) );
+		//System.out.println("noIterateWithoutImprovement: " + noIterateWithoutImprovement + " stopCOnd: "+ (noIterateWithoutImprovement<stopLimit) );
 		return noIterateWithoutImprovement<stopLimit;
 	}
+	
+
 }
