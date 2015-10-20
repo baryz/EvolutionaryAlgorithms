@@ -62,24 +62,5 @@ public class TournamentReproduction extends Reproduction {
 		
 		return resultList;
 	}
-	
-	
 
-	public static void main( String args[] ){
-		String graphName="keller4";
-		Config conf= new Config();
-		
-	
-        Graph graphEx=new Graph(conf.getInGraphDirPath()+ graphName + conf.getInGraphExtension(),graphName);
-        EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,10,ReproductionType.TOURNAMENT,
-        						CrossoverType.MULTI_POINT,20,
-        						SuccessionType.SIMPLY,
-        						StopConditionType.STAGNACY_CONDITION, 20,
-        						conf,
-        						10);   //quantity tournament
-        
-        
-        alg.run();
-        
-	}
 }
