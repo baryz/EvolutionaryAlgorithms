@@ -6,16 +6,11 @@ import java.util.Comparator;
 import java.util.Iterator;
 
 public class Population implements Iterable<Chromosom> {
-	 private final int id;
-	 private  static int counter;
-	 private ArrayList<Chromosom> chromosome;
+	
+	private ArrayList<Chromosom> chromosome;
 
      
      public Population(int inSizePopulation){
-         
-    	 id=counter;
-    	 //System.out.println("CREATE POPULATION ID: "+ counter);
-    	 counter++;
          chromosome = new ArrayList<>(inSizePopulation);
      }
      

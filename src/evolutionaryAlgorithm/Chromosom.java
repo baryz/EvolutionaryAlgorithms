@@ -73,8 +73,7 @@ public class Chromosom {
 	    }
 	    
 	    public void update(boolean[] boolArrayVertex){
-	        //if(getSize()!= boolArrayVertex.length) throw Exception;
-	        for(int i=0;i<getSize();i++){
+	      for(int i=0;i<getSize();i++){
 	            if(gens[i].getValue()!= boolArrayVertex[gens[i].getLabel()]){
 	                gens[i].setValue();
 	            }

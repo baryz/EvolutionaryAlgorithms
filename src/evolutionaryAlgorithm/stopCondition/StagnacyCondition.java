@@ -37,7 +37,7 @@ public class StagnacyCondition extends StopCondition {
 			}
 		}
 		noIterateWithoutImprovement =  (currentStat.getNoOfPopulation() - 1) - noOfIterateWhenFindCurBestChrom;
-		//System.out.println("noIterateWithoutImprovement: " + noIterateWithoutImprovement + " stopCOnd: "+ (noIterateWithoutImprovement<stopLimit) );
+		
 		return noIterateWithoutImprovement<stopLimit;
 	}
 	

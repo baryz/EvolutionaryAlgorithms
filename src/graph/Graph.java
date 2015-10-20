@@ -207,15 +207,9 @@ public class Graph implements Cloneable {
 
 
 	public void  extractionClique(){
-	    
-	    //System.out.println("Ocena osobnika: "+ inputChrom.getFitnes());
-	    //inputChrom.print();
-	    //loadChromosom(inputChrom);
 	    ArrayList<Integer> minVertexList=null;
-	    //System.out.println("Najmniejszy stopieñ: "+ getDegreeVertex(minVertexList.get(0)));
-	    
 	    Random randomGenerator=new Random();
-	   int randomInt=0;
+	    int randomInt=0;
 	   
 	    while(!(isClique())){
 	        minVertexList=getMinDegreeVertex();
@@ -279,7 +273,6 @@ public class Graph implements Cloneable {
 	    for(int i=0;i<inputChrom.getSize();i++){
 	        if(!(inputChrom.getGen(i).getValue())){
 	            tmpGen=(Gen)inputChrom.getGen(i).clone();
-	            //tmpGen.setLabel(10);
 	            vertex=tmpGen.getLabel();
 	            this.removeEdgeOfVertex(vertex);
 	        }
@@ -299,7 +292,6 @@ public class Graph implements Cloneable {
 	            this.degreeVertex[i]--;
 	            if(this.degreeVertex[i]==0){ 
 	                noVertex--;
-	                //System.out.println("Usuwam wierzcholek: "+ i);
 	            }
 	            this.edge[i][inputNoVertex]=false;
 	            this.edge[inputNoVertex][i]=false;
@@ -337,7 +329,7 @@ public class Graph implements Cloneable {
 	    for(int i=0;i<noVertex;i++){
 	        result.edge[i]= (boolean[])this.edge[i].clone();
 	    }
-	    //result.edge= (boolean[][]) this.edge.clone();
+	 
 	    result.degreeVertex=(int[]) this.degreeVertex.clone();
 	    return result;
 	    

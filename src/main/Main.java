@@ -35,7 +35,7 @@ public class Main {
 			
 			//checkSuccession(50);
 			//checkMutation(50);
-			checkEffiency(50);
+			checkEffiency(5);
 			//checkMutation(50);
 		}catch(IOException ex){
 			System.out.println("Error save result to file" + "_Crossover_");
@@ -44,7 +44,7 @@ public class Main {
 	}
 	
 	public static void checkEffiency( int noOfRunning ) throws IOException{
-		String[] graphNameTab= {"san200_0.7_1","san200_0.9_1","san200_0.9_2","san400_0.9_1",
+		String[] graphNameTab= {"san200_0.7_1",/*"san200_0.9_1","san200_0.9_2","san400_0.9_1",
 				"hamming8-4","keller5","san200_0.7_2","san200_0.9_3","san400_0.5_1","san400_0.7_1","san400_0.7_2","san400_0.7_3","san1000",
 				"brock200_1","brock200_2","brock200_3","brock200_4",
     			"brock400_1","brock400_2","brock400_3","brock400_4",
@@ -61,7 +61,7 @@ public class Main {
     			"p_hat1000-3","p_hat1000-1","p_hat1000-2",
     			"p_hat1500-1","p_hat1500-2","p_hat1500-3",
     			
-				"MANN_a81","keller6"}; 
+				"MANN_a81","keller6"*/}; 
 		
 		Config conf= new Config(true);
     	double[] mutationParamTable = {0.5, 0.2, 0.05, 0.9, 0.0, 0.1};
@@ -86,12 +86,12 @@ public class Main {
 				
 				Graph graphEx=new Graph(conf.getInGraphDirPath()+ graphName + conf.getInGraphExtension(),graphName);
 				MutationParam inMutationParam = new MutationParam(mutationParamTable );
-				EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,100,
+				EvolutionaryAlgorithm alg = new EvolutionaryAlgorithm(graphEx,10,
 						ReproductionType.ROULLETEWHEEL,
 						CrossoverType.MULTI_POINT,30,10,
 						inMutationParam,10,
 						SuccessionType.HAMMING_REPLACEMENT,
-						StopConditionType.STAGNACY_CONDITION, 50,
+						StopConditionType.STAGNACY_CONDITION, 5,
 						true, conf,
 						5);
 

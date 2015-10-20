@@ -1,20 +1,9 @@
 package evolutionaryAlgorithm.reproduction;
 
-import java.security.KeyStore.Entry;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Random;
 
-import config.Config;
-import evolutionaryAlgorithm.Chromosom;
-import evolutionaryAlgorithm.EvolutionaryAlgorithm;
+import java.util.ArrayList;
+import java.util.Random;
 import evolutionaryAlgorithm.Population;
-import evolutionaryAlgorithm.crossover.CrossoverType;
-import evolutionaryAlgorithm.stopCondition.StopConditionType;
-import evolutionaryAlgorithm.succession.SuccessionType;
-import graph.Graph;
-import main.Main;
 
 
 

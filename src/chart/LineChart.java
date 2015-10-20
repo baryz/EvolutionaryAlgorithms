@@ -23,7 +23,8 @@ import evolutionaryAlgorithm.Statistic;
 import org.jfree.chart.plot.XYPlot;
 
 public class LineChart extends ApplicationFrame {
-
+	
+	private static final long serialVersionUID = 1L;
 	private  final XYDataset dataset;
 	private  final JFreeChart chart;
     public LineChart( String title, Statistic dataset) {
@@ -72,10 +73,8 @@ public class LineChart extends ApplicationFrame {
 	
 	}
 	
-	 private JFreeChart createChart() {
-	        
-	        // create the chart...
-	        final JFreeChart chart = ChartFactory.createXYLineChart(
+	private JFreeChart createChart() {
+	   final JFreeChart chart = ChartFactory.createXYLineChart(
 	            this.getTitle(),      // chart title
 	            "No of population",                      // x axis label
 	            "Fitnes",                      // y axis label
@@ -84,33 +83,30 @@ public class LineChart extends ApplicationFrame {
 	            true,                     // include legend
 	            true,                     // tooltips
 	            false                     // urls
-	        );
+	   );
 	        
-	        final XYPlot plot = chart.getXYPlot();
-	        plot.setBackgroundPaint(Color.lightGray);
-	    //    plot.setAxisOffset(new Spacer(Spacer.ABSOLUTE, 5.0, 5.0, 5.0, 5.0));
-	        plot.setDomainGridlinePaint(Color.white);
-	        plot.setRangeGridlinePaint(Color.white);
-	        
-	        double minYaxisValue = dataset.getYValue(0,0)- 1;
-	      
-	        
-	        ValueAxis yAxis = plot.getRangeAxis();
-	        
-	       yAxis.setRange(minYaxisValue,  yAxis.getUpperBound());
-	       
-	      
-	        
-	        final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-	        renderer.setSeriesLinesVisible(0, false);
-	        renderer.setSeriesShapesVisible(1, false);
-	        plot.setRenderer(renderer);
-
-	        // change the auto tick unit selection to integer units only...
-	        final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-	        rangeAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits());
-	       
-	                
-	        return chart;
+        final XYPlot plot = chart.getXYPlot();
+        plot.setBackgroundPaint(Color.lightGray);
+        plot.setDomainGridlinePaint(Color.white);
+        plot.setRangeGridlinePaint(Color.white);
+        
+        double minYaxisValue = dataset.getYValue(0,0)- 1;
+      
+        
+        ValueAxis yAxis = plot.getRangeAxis();
+        
+       yAxis.setRange(minYaxisValue,  yAxis.getUpperBound());
+       
+      
+        
+        final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        renderer.setSeriesLinesVisible(0, false);
+        renderer.setSeriesShapesVisible(1, false);
+        plot.setRenderer(renderer);
+        final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+        rangeAxis.setStandardTickUnits(NumberAxis.createStandardTickUnits());
+       
+                
+        return chart;
 	 }
 }

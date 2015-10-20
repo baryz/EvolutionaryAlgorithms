@@ -18,9 +18,7 @@ public class RandomWithoutDuplicate {
 			int randomIndex=randEng.nextInt(rangeRandomInMap);
 			result[i]=mapNumber.get(randomIndex);
 			mapNumber.set(randomIndex,mapNumber.get(rangeRandomInMap));
-			//mapNumber.set(rangeRandomInMap, result[i]);
 			rangeRandomInMap--;
-			
 		}
 		
 		

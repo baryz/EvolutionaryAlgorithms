@@ -4,14 +4,9 @@ import evolutionaryAlgorithm.Chromosom;
 
 public class OnePointCrossover extends Crossover {
 
-	
-	
 	public  OnePointCrossover() {
-		
-		
 	}
 
-	
 	@Override
 	public Chromosom[] getChromosomes(){
 		Chromosom[] result= new Chromosom[2];

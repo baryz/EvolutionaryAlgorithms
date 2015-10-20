@@ -16,7 +16,6 @@ public class Statistic {
 	private ArrayList<int[]> resultTempPopulation;
 	private ArrayList<String> bestCliqueTempPopulation;
 	private int noOfPopulation;
-	//private int[] algorithmParameter; 
 	private int sizePopulation;
 	public Statistic( Population initPop){
 		
@@ -71,7 +70,6 @@ public class Statistic {
 	
 	public void printIterationData(int index){
 		
-		//System.out.println("ITERATION " + index);
 		System.out.println("BEST BASE RESULT : " + getMaxFitnesBase(index));
 		System.out.println("AVG BASE: " + getAvgBasePopulation(index) + " BASE :" + Arrays.toString(resultBasePopulation.get(index)));
         System.out.println("STD DEV: " + getStdDevBasePopulation(index) );

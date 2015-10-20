@@ -56,8 +56,6 @@ public class RankReproduction extends Reproduction{
        System.out.println("downBound: "+downBound);
        System.out.println("upBound: "+ upBound);
        
-       //double randParam = randGen.;
-       
        double paramK = upBound;//2.0/51.0;
        double paramA = (1.0 -(sumRank-1.0)*paramK)/rankMax;
        
@@ -68,7 +66,7 @@ public class RankReproduction extends Reproduction{
            //-----------------p. 120 Arabas ----------> 
            probab=paramA+paramK*(1.0-((i/rankMax)));
            sum+=probab;
-          // System.out.println(i+". Pr= "+ probab + " Sum: "+ sum);
+         
        }
    }
    
@@ -81,17 +79,12 @@ public class RankReproduction extends Reproduction{
        
        downBound=-1.0/(sumRank*(rankMax-1.0));
        upBound= (rankMax - 1.0)/(sumRank*(rankMax-1.0));
-       double paramK = upBound;//2.0/51.0;
+       double paramK = upBound;
        double paramA = (1.0 -(sumRank-1.0)*paramK)/rankMax;
-       
-       //System.out.println("Param K="+paramK+" Param A= "+paramA);
-       //double sum=0.0;
        double probab=0.0;
        for(int i=1;i<=rankMax;i++){
            probab=paramA+paramK*(1.0-((i/rankMax)));
            result[i-1]=probab;
-           //sum+=probab;
-           //System.out.println(i+". Pr= "+ probab + " Sum: "+ sum);
        }
        
        return result;
