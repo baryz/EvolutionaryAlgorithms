@@ -33,9 +33,9 @@ public class Main {
 		try{
 			//checkCrossover(50);
 			
-			//checkSuccession(50);
+			checkSuccession(50);
 			//checkMutation(50);
-			checkEffiency(5);
+			//checkEfficiency(50);
 			//checkMutation(50);
 		}catch(IOException ex){
 			System.out.println("Error save result to file" + "_Crossover_");
@@ -43,7 +43,7 @@ public class Main {
 		
 	}
 	
-	public static void checkEffiency( int noOfRunning ) throws IOException{
+	public static void checkEfficiency( int noOfRunning ) throws IOException{
 		String[] graphNameTab= {"san200_0.7_1",/*"san200_0.9_1","san200_0.9_2","san400_0.9_1",
 				"hamming8-4","keller5","san200_0.7_2","san200_0.9_3","san400_0.5_1","san400_0.7_1","san400_0.7_2","san400_0.7_3","san1000",
 				"brock200_1","brock200_2","brock200_3","brock200_4",
@@ -70,14 +70,12 @@ public class Main {
     	BufferedWriter writer = null;
     	double sum=0.0,sumStd = 0.0;
 		
-		
-    	for(int k=0; k < graphNameTab.length; k++){
+		for(int k=0; k < graphNameTab.length; k++){
     		long start = System.currentTimeMillis();
     		Statistic[] statisticTable = new Statistic[noOfRunning];
 			int[] resultTable = new int[noOfRunning];
 			String algParam = "";
 			String graphName= graphNameTab[k];
-			
 			String dirPath = "resourceData/result/" +graphName +"_";
 			
 			for (int i=0; i<noOfRunning; i++){
@@ -99,7 +97,6 @@ public class Main {
 				stopTimer=System.currentTimeMillis();
 				time=stopTimer-overallStartTimer;
 				System.out.println("Overall  time---------> "+ time + " MS");
-				
 				Statistic tmpStat = alg.getStatistic();
 				statisticTable[i] = tmpStat;
 				
@@ -131,19 +128,6 @@ public class Main {
 				sum+= tmpStat.getNoOfPopulation();
 				sumStd += tmpStat.getAverageStdDevBasePopulation();
 			}
-			/*for(int i=0 ; i<noOfRunning; i++){
-				int noOfIterate = statisticTable[i].getNoOfPopulation();
-				
-				String line = i+". Count "+ noOfIterate+" RESULT: " +resultTable[i] 
-						+ " AVgStdDev: " + statisticTable[i].getAverageStdDevBasePopulation();
-				System.out.println(line);
-				writer.append(line);
-				writer.newLine();
-				
-				sum+= noOfIterate;
-				sumStd += statisticTable[i].getAverageStdDevBasePopulation();
-			 
-			}*/
 			dirPath =  "resourceData/result/"+graphName +"_"+statisticTable[0].getSizePopulation()+".txt";
 			output = new FileWriter(dirPath,true);
 			writer = new BufferedWriter(output);
@@ -168,18 +152,13 @@ public class Main {
 			writer.flush();
 			writer.close();
 			
-			
-			System.out.println("select_prob: " +mutationParamTable[2] + " mutate_prob:"+mutationParamTable[3]);
-			System.out.println("AVG NO ITERATE: " + (sum/noOfRunning));
-			System.out.println("AVG RESULT: " + Arrays.stream(resultTable).average().getAsDouble());
-			System.out.println("AVG (AVD STD DEV: " + (sumStd/noOfRunning) );
     	}
     	
 	}
 	
 	public static void checkSuccession(int noOfRunning) throws IOException{
-		SuccessionType[] succesionTypeTable = {SuccessionType.PART_REPLACEMENT
-				}; //SuccessionType.ELITARY,SuccessionType.HAMMING_REPLACEMENT,SuccessionType.SIMPLY
+		SuccessionType[] succesionTypeTable = {SuccessionType.PART_REPLACEMENT,
+				SuccessionType.ELITARY,SuccessionType.HAMMING_REPLACEMENT,SuccessionType.SIMPLY}; 
 		
 		for(int k=0; k < succesionTypeTable.length; k++){
 			long start = System.currentTimeMillis();
@@ -283,8 +262,8 @@ public class Main {
 	
 	
 	public static void checkMutation(int noOfRunning) throws IOException{
-		double[] offSelectProbTable = {0.7}; // 0.05, 0.1, 0.2,0.4, 0.5, 0.7,0.9
-		double[] offMutateProbTable = {0.05, 0.1, 0.2, 0.4, 0.5, 0.7, 0.9	};
+		double[] offSelectProbTable = { 0.05, 0.1, 0.2,0.4, 0.5, 0.7,0.9};
+		double[] offMutateProbTable = {0.05, 0.1, 0.2, 0.4, 0.5, 0.7, 0.9};
 		
 		for(int iter = 0 ; iter <  offSelectProbTable.length; iter++){
 			for( int iter1 = 0; iter1 < offMutateProbTable.length; iter1++){
@@ -391,7 +370,7 @@ public class Main {
 	}
 	
 	public static void checkCrossover(int noOfRunning) throws IOException{
-		int[] noOfCuttingTable = {30};//, 2,5,10,20,30,40,50,75,100,150,200 };
+		int[] noOfCuttingTable = {2,5,10,20,30,40,50,75,100,150,200 };
 		double[] mutationParamTable = {0.5, 0.2, 0.05, 0.9, 0.00, 0.1};
 		
 		
